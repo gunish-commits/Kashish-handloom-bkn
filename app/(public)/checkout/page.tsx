@@ -52,6 +52,7 @@ function CheckoutContent() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [updateProfileAddress, setUpdateProfileAddress] = useState(false);
+  const [isOrderCompleted, setIsOrderCompleted] = useState(false);
 
   // Delivery Charges State
   const [deliveryCharge, setDeliveryCharge] = useState(99);
@@ -59,10 +60,10 @@ function CheckoutContent() {
 
   // Redirect if cart is empty on checkout load
   useEffect(() => {
-    if (cartItems.length === 0) {
+    if (cartItems.length === 0 && !isOrderCompleted) {
       router.push('/cart');
     }
-  }, [cartItems, router]);
+  }, [cartItems, router, isOrderCompleted]);
 
   // Load pre-fill data: pincode from sessionStorage, or customer profile if user is authenticated
   useEffect(() => {
@@ -278,14 +279,24 @@ function CheckoutContent() {
         grandTotal: orderPayload.grand_total,
       });
 
-      // 3. Store message in localStorage before redirecting
+      // 3. Mark order as completed to prevent empty-cart redirect
+      setIsOrderCompleted(true);
+
+      // 4. Store message in localStorage and set redirect flag
       localStorage.setItem(`order_msg_${orderId}`, encodeURIComponent(formattedMessage));
+      localStorage.setItem(`redirected_${orderId}`, 'true');
       
-      // 4. Clear cart
+      // 5. Clear cart
       clearCart();
 
-      // 5. Redirect checkout to order-pending page
-      router.push(`/order-pending?id=${orderId}`);
+      // 6. Direct WhatsApp Link (uses api.whatsapp.com for best mobile compatibility)
+      const waLink = `https://api.whatsapp.com/send?phone=918209455157&text=${encodeURIComponent(formattedMessage)}`;
+
+      // 7. Update browser history state to /order-pending so going back loads it!
+      window.history.pushState(null, '', `/order-pending?id=${orderId}`);
+
+      // 8. Redirect current tab directly to WhatsApp (never blocked by popup filters)
+      window.location.href = waLink;
     } catch (err: any) {
       console.error(err);
       alert(err.message || 'An error occurred during order submission.');
