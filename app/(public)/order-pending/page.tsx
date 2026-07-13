@@ -12,43 +12,37 @@ function OrderPendingContent() {
   const router = useRouter();
   const orderId = searchParams.get('id') || '';
   const [hasMessage, setHasMessage] = useState(false);
+  const [whatsappLink, setWhatsappLink] = useState('https://api.whatsapp.com/send?phone=918209455157');
 
   useEffect(() => {
     if (!orderId) {
       router.push('/shop');
       return;
     }
-    // Check if we have the message saved in session storage
-    const msg = sessionStorage.getItem(`order_msg_${orderId}`);
+    // Check if we have the message saved in local storage
+    const msg = localStorage.getItem(`order_msg_${orderId}`);
     if (msg) {
       setHasMessage(true);
+      setWhatsappLink(`https://api.whatsapp.com/send?phone=918209455157&text=${msg}`);
 
       // Auto-redirect to WhatsApp on first load (with 800ms delay to bypass popup/webview blocks)
-      const hasAutoRedirected = sessionStorage.getItem(`redirected_${orderId}`);
+      const hasAutoRedirected = localStorage.getItem(`redirected_${orderId}`);
       if (!hasAutoRedirected) {
-        sessionStorage.setItem(`redirected_${orderId}`, 'true');
+        localStorage.setItem(`redirected_${orderId}`, 'true');
         const timer = setTimeout(() => {
           window.location.href = `https://api.whatsapp.com/send?phone=918209455157&text=${msg}`;
         }, 800);
         return () => clearTimeout(timer);
       }
-    }
-  }, [orderId, router]);
-
-  const handleResendWhatsApp = () => {
-    const storedMsg = sessionStorage.getItem(`order_msg_${orderId}`);
-    if (storedMsg) {
-      window.open(`https://api.whatsapp.com/send?phone=918209455157&text=${storedMsg}`, '_blank');
     } else {
-      // Fallback: If session storage was lost, open a standard enquiry to Jinnah road store
-      window.open(
+      // Fallback link if localStorage got cleared
+      setWhatsappLink(
         `https://api.whatsapp.com/send?phone=918209455157&text=${encodeURIComponent(
           `Hello, I would like to confirm my order ID: *${orderId}* with Kashish Handloom.`
-        )}`,
-        '_blank'
+        )}`
       );
     }
-  };
+  }, [orderId, router]);
 
   return (
     <div className="flex-1 bg-ink text-warm-ivory flex flex-col justify-center items-center py-16 px-4 select-none text-center">
@@ -130,13 +124,14 @@ function OrderPendingContent() {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-          <button
-            type="button"
-            onClick={handleResendWhatsApp}
-            className="w-full sm:w-auto h-11 bg-[#25D366] hover:bg-[#20ba59] text-white font-sans font-bold uppercase tracking-wider text-[11px] px-8 rounded-[4px] flex items-center justify-center gap-2 shadow-lg shadow-[#25d366]/10 hover:shadow-[#25d366]/25 transition-all cursor-pointer border-none focus:outline-none animate-pulse-whatsapp"
+          <a
+            href={whatsappLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full sm:w-auto h-11 bg-[#25D366] hover:bg-[#20ba59] text-white font-sans font-bold uppercase tracking-wider text-[11px] px-8 rounded-[4px] flex items-center justify-center gap-2 shadow-lg shadow-[#25d366]/10 hover:shadow-[#25d366]/25 transition-all cursor-pointer border-none focus:outline-none animate-pulse-whatsapp text-center"
           >
             <span>📱</span> Send Order to WhatsApp
-          </button>
+          </a>
 
           <Button
             variant="outline-dark"

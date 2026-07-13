@@ -278,8 +278,8 @@ function CheckoutContent() {
         grandTotal: orderPayload.grand_total,
       });
 
-      // 3. Store message in sessionStorage before redirecting
-      sessionStorage.setItem(`order_msg_${orderId}`, encodeURIComponent(formattedMessage));
+      // 3. Store message in localStorage before redirecting
+      localStorage.setItem(`order_msg_${orderId}`, encodeURIComponent(formattedMessage));
       
       // 4. Clear cart
       clearCart();
