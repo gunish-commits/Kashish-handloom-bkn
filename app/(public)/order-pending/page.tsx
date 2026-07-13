@@ -23,11 +23,14 @@ function OrderPendingContent() {
     if (msg) {
       setHasMessage(true);
 
-      // Auto-redirect to WhatsApp on first load
+      // Auto-redirect to WhatsApp on first load (with 800ms delay to bypass popup/webview blocks)
       const hasAutoRedirected = sessionStorage.getItem(`redirected_${orderId}`);
       if (!hasAutoRedirected) {
         sessionStorage.setItem(`redirected_${orderId}`, 'true');
-        window.location.href = `https://wa.me/918209455157?text=${msg}`;
+        const timer = setTimeout(() => {
+          window.location.href = `https://api.whatsapp.com/send?phone=918209455157&text=${msg}`;
+        }, 800);
+        return () => clearTimeout(timer);
       }
     }
   }, [orderId, router]);
@@ -35,11 +38,11 @@ function OrderPendingContent() {
   const handleResendWhatsApp = () => {
     const storedMsg = sessionStorage.getItem(`order_msg_${orderId}`);
     if (storedMsg) {
-      window.open(`https://wa.me/918209455157?text=${storedMsg}`, '_blank');
+      window.open(`https://api.whatsapp.com/send?phone=918209455157&text=${storedMsg}`, '_blank');
     } else {
       // Fallback: If session storage was lost, open a standard enquiry to Jinnah road store
       window.open(
-        `https://wa.me/918209455157?text=${encodeURIComponent(
+        `https://api.whatsapp.com/send?phone=918209455157&text=${encodeURIComponent(
           `Hello, I would like to confirm my order ID: *${orderId}* with Kashish Handloom.`
         )}`,
         '_blank'
@@ -130,9 +133,9 @@ function OrderPendingContent() {
           <button
             type="button"
             onClick={handleResendWhatsApp}
-            className="w-full sm:w-auto h-11 bg-[#25D366] hover:bg-[#20ba59] text-white font-sans font-bold uppercase tracking-wider text-[11px] px-8 rounded-[4px] flex items-center justify-center gap-2 shadow-lg shadow-[#25d366]/10 hover:shadow-[#25d366]/25 transition-all cursor-pointer border-none focus:outline-none"
+            className="w-full sm:w-auto h-11 bg-[#25D366] hover:bg-[#20ba59] text-white font-sans font-bold uppercase tracking-wider text-[11px] px-8 rounded-[4px] flex items-center justify-center gap-2 shadow-lg shadow-[#25d366]/10 hover:shadow-[#25d366]/25 transition-all cursor-pointer border-none focus:outline-none animate-pulse-whatsapp"
           >
-            <span>📱</span> Resend WhatsApp Message
+            <span>📱</span> Send Order to WhatsApp
           </button>
 
           <Button

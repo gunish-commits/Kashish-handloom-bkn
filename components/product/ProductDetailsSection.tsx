@@ -3,11 +3,12 @@
 import React, { useState } from 'react';
 import { Product } from '../../types';
 import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
 import StockBadge from '../ui/StockBadge';
 import ReturnBadge from '../ui/ReturnBadge';
 import Button from '../ui/Button';
 import { formatPrice } from '../../lib/utils';
-import { Minus, Plus, MessageCircle } from 'lucide-react';
+import { Minus, Plus, MessageCircle, Heart } from 'lucide-react';
 import { buildDirectProductEnquiryMessage, getWhatsAppLink } from '../../lib/whatsapp';
 
 interface ProductDetailsSectionProps {
@@ -17,6 +18,7 @@ interface ProductDetailsSectionProps {
 export default function ProductDetailsSection({ product }: ProductDetailsSectionProps) {
   const { id, name, price, sale_price, stock, low_stock_threshold, return_policy, fabric, size, sku, description } = product;
   const { addToCart } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
 
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'return' | 'details'>('description');
@@ -152,31 +154,70 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
           </div>
 
           {/* Action triggers */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-2">
-            <Button
-              variant="primary"
-              onClick={handleAddToCart}
-              className="w-full h-12 uppercase tracking-widest text-[11px] font-semibold"
+          <div className="flex flex-col gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                variant="primary"
+                onClick={handleAddToCart}
+                className="w-full h-12 uppercase tracking-widest text-[11px] font-semibold"
+              >
+                Add to Cart
+              </Button>
+              <Button
+                variant="whatsapp"
+                onClick={handleWhatsAppDirectOrder}
+                className="w-full h-12 uppercase tracking-widest text-[11px] font-semibold flex items-center gap-2"
+              >
+                <MessageCircle className="w-4 h-4 fill-current text-white shrink-0" />
+                <span>Order on WhatsApp</span>
+              </Button>
+            </div>
+            
+            <button
+              type="button"
+              onClick={() => toggleWishlist(product)}
+              className="w-full h-11 border border-gray-200 hover:border-gray-300 bg-white text-ink hover:text-deep-maroon font-sans font-bold uppercase tracking-wider text-[11px] rounded-[4px] flex items-center justify-center gap-2 transition-all cursor-pointer focus:outline-none"
             >
-              Add to Cart
-            </Button>
-            <Button
-              variant="whatsapp"
-              onClick={handleWhatsAppDirectOrder}
-              className="w-full h-12 uppercase tracking-widest text-[11px] font-semibold flex items-center gap-2"
-            >
-              <MessageCircle className="w-4 h-4 fill-current text-white shrink-0" />
-              <span>Order on WhatsApp</span>
-            </Button>
+              {isInWishlist(id) ? (
+                <>
+                  <span className="text-sm">❤️</span>
+                  <span>In Wishlist</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-sm">♡</span>
+                  <span>Add to Wishlist</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       )}
 
       {/* Out of Stock CTA */}
       {isOutOfStock && (
-        <Button variant="secondary" disabled fullWidth className="h-12 uppercase tracking-widest text-[11px] font-semibold">
-          Out of Stock
-        </Button>
+        <div className="space-y-3">
+          <Button variant="secondary" disabled fullWidth className="h-12 uppercase tracking-widest text-[11px] font-semibold">
+            Out of Stock
+          </Button>
+          <button
+            type="button"
+            onClick={() => toggleWishlist(product)}
+            className="w-full h-11 border border-gray-200 hover:border-gray-300 bg-white text-ink hover:text-deep-maroon font-sans font-bold uppercase tracking-wider text-[11px] rounded-[4px] flex items-center justify-center gap-2 transition-all cursor-pointer focus:outline-none"
+          >
+            {isInWishlist(id) ? (
+              <>
+                <span className="text-sm">❤️</span>
+                <span>In Wishlist</span>
+              </>
+            ) : (
+              <>
+                <span className="text-sm">♡</span>
+                <span>Add to Wishlist</span>
+              </>
+            )}
+          </button>
+        </div>
       )}
 
       {/* 4. Tab Panels description/returns/details */}

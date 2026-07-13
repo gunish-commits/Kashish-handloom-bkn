@@ -4,6 +4,7 @@ import './globals.css';
 import { CartProvider } from '../context/CartContext';
 import { AuthProvider } from '../context/AuthContext';
 import { StoreSettingsProvider } from '../context/StoreSettingsContext';
+import { WishlistProvider } from '../context/WishlistContext';
 import LoadingScreen from '../components/layout/LoadingScreen';
 
 const cormorant = Cormorant_Garamond({
@@ -60,8 +61,10 @@ export default function RootLayout({
         <AuthProvider>
           <StoreSettingsProvider>
             <CartProvider>
-              <LoadingScreen />
-              {children}
+              <WishlistProvider>
+                <LoadingScreen />
+                {children}
+              </WishlistProvider>
             </CartProvider>
           </StoreSettingsProvider>
         </AuthProvider>

@@ -7,8 +7,9 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
+import { useWishlist } from '../../context/WishlistContext';
 import BrandName from '../ui/BrandName';
-import { Search, ShoppingCart, Menu, Phone, User, ShieldAlert } from 'lucide-react';
+import { Search, ShoppingCart, Menu, Phone, User, ShieldAlert, Heart } from 'lucide-react';
 import MobileNav from './MobileNav';
 import { StoreSettings, Product } from '../../types';
 import { supabase } from '../../lib/supabase/client';
@@ -18,6 +19,7 @@ export default function Header() {
   const router = useRouter();
   const { cartCount, triggerCartBounce, clearCart } = useCart();
   const { user, isAdmin, logout } = useAuth();
+  const { wishlistIds } = useWishlist();
   const storeSettings = useStoreSettings();
   
   const [scrolled, setScrolled] = useState(false);
@@ -321,6 +323,20 @@ export default function Header() {
                   </div>
                 )}
               </div>
+
+              {/* Wishlist Icon */}
+              <Link
+                href="/wishlist"
+                className="relative text-warm-ivory hover:text-antique-gold p-1 transition-all duration-200 mr-1"
+                aria-label="Open wishlist"
+              >
+                <Heart className="w-[18px] h-[18px]" />
+                {wishlistIds.length > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-[#FF3B30] text-white font-mono text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                    {wishlistIds.length}
+                  </span>
+                )}
+              </Link>
 
               {/* Cart Icon with Bounce */}
               <Link

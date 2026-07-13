@@ -22,6 +22,7 @@ export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
     { name: 'Shop', href: '/shop' },
     { name: 'Offers', href: '/offers' },
     { name: 'Cart', href: '/cart' },
+    { name: 'Wishlist', href: '/wishlist' },
     { name: 'About', href: '/about' },
     { name: 'Contact', href: '/contact' },
   ];

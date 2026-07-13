@@ -5,10 +5,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Product } from '../../types';
 import { useCart } from '../../context/CartContext';
+import { useWishlist } from '../../context/WishlistContext';
 import StockBadge from '../ui/StockBadge';
 import ReturnBadge from '../ui/ReturnBadge';
 import Button from '../ui/Button';
 import { formatPrice } from '../../lib/utils';
+import { Heart } from 'lucide-react';
 
 interface ProductCardProps {
   product: Product;
@@ -17,6 +19,7 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const { id, name, slug, price, sale_price, stock, low_stock_threshold, return_policy, photos, categories } = product;
   const { addToCart } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
 
   const categoryName = categories?.name || 'Handloom';
   const mainPhoto = photos && photos.length > 0 ? photos[0] : '/placeholder-product.jpg';
@@ -75,6 +78,24 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="absolute top-2 left-2 z-10">
           <StockBadge stock={stock} threshold={low_stock_threshold} />
         </div>
+
+        {/* Heart Icon Overlay (absolute top-2 right-2, 8px offset) */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleWishlist(product);
+          }}
+          className="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-white/95 hover:bg-white border border-gray-100 flex items-center justify-center shadow-md text-ink hover:text-[#FF3B30] active:scale-95 transition-all cursor-pointer"
+          aria-label="Toggle Wishlist"
+        >
+          {isInWishlist(id) ? (
+            <Heart className="w-4 h-4 fill-[#FF3B30] text-[#FF3B30] transition-colors" />
+          ) : (
+            <Heart className="w-4 h-4 text-gray-400 hover:text-[#FF3B30] transition-colors" />
+          )}
+        </button>
       </Link>
 
       {/* Card Content Body */}
