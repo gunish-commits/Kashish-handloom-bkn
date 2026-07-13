@@ -1,0 +1,248 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #0F0A05;
+  --deep-maroon: #5C0F1F;
+  --antique-gold: #B8892A;
+  --warm-ivory: #F5EFE3;
+  --pale-linen: #EDE4D4;
+  --surface-dark: #1A110A;
+  --surface-mid: #2B1A10;
+  --border-dark: #3A2518;
+  --white-section: #FAF7F2;
+  --card-white: #FFFFFF;
+  --stock-green: #2E7D52;
+  --stock-orange: #C4692A;
+  --stock-red: #8B1A1A;
+  --whatsapp-green: #25D366;
+}
+
+@theme {
+  --color-ink: var(--ink);
+  --color-deep-maroon: var(--deep-maroon);
+  --color-antique-gold: var(--antique-gold);
+  --color-warm-ivory: var(--warm-ivory);
+  --color-pale-linen: var(--pale-linen);
+  --color-surface-dark: var(--surface-dark);
+  --color-surface-mid: var(--surface-mid);
+  --color-border-dark: var(--border-dark);
+  --color-white-section: var(--white-section);
+  --color-card-white: var(--card-white);
+  --color-stock-green: var(--stock-green);
+  --color-stock-orange: var(--stock-orange);
+  --color-stock-red: var(--stock-red);
+  --color-whatsapp-green: var(--whatsapp-green);
+
+  --font-display: var(--font-cormorant), serif;
+  --font-sans: var(--font-dm-sans), sans-serif;
+  --font-mono: var(--font-dm-mono), monospace;
+}
+
+body {
+  background-color: var(--white-section);
+  color: var(--surface-dark);
+  font-family: var(--font-dm-sans), sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Animations */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 30s linear infinite;
+}
+
+@keyframes pulse-opacity {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.98);
+  }
+}
+
+.animate-pulse-stock {
+  animation: pulse-opacity 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background-image: linear-gradient(
+    120deg,
+    transparent 30%,
+    rgba(184, 137, 42, 0.15) 40%,
+    rgba(184, 137, 42, 0.25) 50%,
+    rgba(184, 137, 42, 0.15) 60%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 4s infinite linear;
+}
+
+/* Page transition fade */
+.page-fade-in {
+  animation: fadeIn 400ms ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Scroll reveal styles */
+.reveal-hidden {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Custom Scrollbar for premium feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ink);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-dark);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--antique-gold);
+}
+
+/* Hide scrollbar utility for mobile offer sliders */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Apply this class to every logo image on the site */
+.kashish-logo {
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(184, 137, 42, 0.25));
+}
+
+
+.brand-name-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;  /* always centered within itself */
+  line-height: 1;
+  gap: 0;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.brand-name-kashish {
+  font-family: var(--font-display), 'Cormorant Garamond', Georgia, serif;
+  font-weight: 600;
+  letter-spacing: 0.18em;  /* wide spacing — premium feel */
+  text-transform: uppercase;
+  line-height: 1;
+  display: block;
+}
+
+.brand-name-divider-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+
+.brand-name-line {
+  /* thin horizontal rule on each side of HANDLOOM */
+  display: block;
+  width: 20px;
+  height: 1px;
+  background-color: currentColor;
+  opacity: 0.5;
+}
+
+.brand-name-handloom {
+  font-family: var(--font-sans), 'DM Sans', system-ui, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  display: block;
+}
+
+.brand-name-tagline {
+  font-family: var(--font-sans), 'DM Sans', system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  margin-top: 6px;
+  opacity: 0.8;
+}
+
+.footer-brand-section {
+  padding-top: 64px;
+  padding-bottom: 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.homepage-last-section {
+  padding-bottom: 80px !important;
+}
+
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0 40px;
+  height: 72px;
+}
+
+.header-brand { flex: 0 0 auto; min-width: 140px; }
+.header-nav   { flex: 1 1 auto; display: flex; justify-content: center; gap: 32px; }
+.header-icons { flex: 0 0 auto; display: flex; align-items: center; gap: 20px; }
+
+@media (max-width: 768px) {
+  .header-inner { padding: 0 20px; height: 60px; }
+  .header-nav   { display: none; }
+}
