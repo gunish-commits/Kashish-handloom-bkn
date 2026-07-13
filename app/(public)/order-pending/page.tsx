@@ -22,6 +22,13 @@ function OrderPendingContent() {
     const msg = sessionStorage.getItem(`order_msg_${orderId}`);
     if (msg) {
       setHasMessage(true);
+
+      // Auto-redirect to WhatsApp on first load
+      const hasAutoRedirected = sessionStorage.getItem(`redirected_${orderId}`);
+      if (!hasAutoRedirected) {
+        sessionStorage.setItem(`redirected_${orderId}`, 'true');
+        window.location.href = `https://wa.me/918209455157?text=${msg}`;
+      }
     }
   }, [orderId, router]);
 

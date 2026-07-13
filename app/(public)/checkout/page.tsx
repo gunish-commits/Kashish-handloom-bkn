@@ -278,15 +278,9 @@ function CheckoutContent() {
         grandTotal: orderPayload.grand_total,
       });
 
-      // 3. Open WhatsApp link in a new tab
-      const whatsappNumber = '+918209455157';
-      const waLink = getWhatsAppLink(whatsappNumber, formattedMessage);
-      
-      // Store message in sessionStorage before opening WhatsApp
+      // 3. Store message in sessionStorage before redirecting
       sessionStorage.setItem(`order_msg_${orderId}`, encodeURIComponent(formattedMessage));
       
-      window.open(waLink, '_blank');
-
       // 4. Clear cart
       clearCart();
 
