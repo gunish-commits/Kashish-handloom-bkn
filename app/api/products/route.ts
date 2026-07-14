@@ -31,7 +31,36 @@ function fuzzySearch(products: any[], searchStr: string): any[] {
 
   if (queryWords.length === 0) return products;
 
-  const scoredProducts = products.map((product: any) => {
+  // 1. Scan query words to find if any match an active category name
+  const categoryMatchIds = new Set<string>();
+  
+  queryWords.forEach((qWord: string) => {
+    products.forEach((p: any) => {
+      if (p.categories?.name && p.category_id) {
+        const cName = p.categories.name.toLowerCase();
+        const words = cName.split(/\s+/).filter(Boolean);
+        const matches = words.some((w: string) => 
+          w === qWord || 
+          w === qWord + 's' || 
+          qWord === w + 's' ||
+          (qWord.length >= 4 && (w.startsWith(qWord) || qWord.startsWith(w))) ||
+          levenshtein(qWord, w) <= 1
+        );
+        if (matches) {
+          categoryMatchIds.add(p.category_id);
+        }
+      }
+    });
+  });
+
+  // 2. Filter candidates: if there is a category match, restrict results to that category
+  let candidates = products;
+  if (categoryMatchIds.size > 0) {
+    candidates = products.filter((p: any) => p.category_id && categoryMatchIds.has(p.category_id));
+  }
+
+  // 3. Score candidates
+  const scoredProducts = candidates.map((product: any) => {
     let score = 0;
     const nameLower = (product.name || '').toLowerCase();
     const descLower = (product.description || '').toLowerCase();
@@ -41,14 +70,14 @@ function fuzzySearch(products: any[], searchStr: string): any[] {
 
     const nameNoSpaces = nameLower.replace(/\s+/g, '');
 
-    // 1. Check for exact full phrase match
+    // Check for exact full phrase match
     if (nameLower === queryLower) {
       score += 100;
     } else if (nameLower.includes(queryLower)) {
       score += 40;
     }
 
-    // 2. Check for collapsed spaces (e.g. pillowcover <-> pillow cover)
+    // Check for collapsed spaces (e.g. pillowcover <-> pillow cover)
     if (queryNoSpaces.length > 3) {
       if (nameNoSpaces === queryNoSpaces) {
         score += 80;
@@ -57,10 +86,11 @@ function fuzzySearch(products: any[], searchStr: string): any[] {
       }
     }
 
-    // 3. Compute token word match scores
+    // Compute token word match scores
     const nameWords = nameLower.split(/\s+/).filter(Boolean);
     const categoryWords = categoryName.split(/\s+/).filter(Boolean);
     const fabricWords = fabricLower.split(/\s+/).filter(Boolean);
+    const descWords = descLower.split(/\s+/).filter(Boolean).slice(0, 100);
 
     queryWords.forEach((qWord: string) => {
       let bestWordScore = 0;
@@ -109,10 +139,33 @@ function fuzzySearch(products: any[], searchStr: string): any[] {
         }
       });
 
+      // Check description words
+      let bestDescScore = 0;
+      descWords.forEach((dWord: string) => {
+        let dScore = 0;
+        if (dWord === qWord) {
+          dScore = 4;
+        } else if (dWord.includes(qWord)) {
+          dScore = 2;
+        } else if (levenshtein(qWord, dWord) <= 1) {
+          dScore = 1;
+        }
+        const weightedScore = dScore * 0.5;
+        if (weightedScore > bestDescScore) {
+          bestDescScore = weightedScore;
+        }
+      });
+      bestWordScore = Math.max(bestWordScore, bestDescScore);
+
       score += bestWordScore;
     });
 
-    // 4. Boost featured items and in-stock items
+    // Category match boost: add extra priority if the category was matched
+    if (categoryMatchIds.has(product.category_id)) {
+      score += 200;
+    }
+
+    // Boost featured items and in-stock items
     if (product.featured) score += 2;
     if (product.stock > 0) score += 1;
 
@@ -120,9 +173,9 @@ function fuzzySearch(products: any[], searchStr: string): any[] {
   });
 
   return scoredProducts
-    .filter(item => item.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .map(item => item.product);
+    .filter((item: any) => item.score > 0)
+    .sort((a: any, b: any) => b.score - a.score)
+    .map((item: any) => item.product);
 }
 
 export async function GET(request: NextRequest) {

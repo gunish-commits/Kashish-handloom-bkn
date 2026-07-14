@@ -113,6 +113,21 @@ function ShopContent() {
     }
   };
 
+  const handleSearchSubmit = () => {
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    if (liveSearchTimeoutRef.current) clearTimeout(liveSearchTimeoutRef.current);
+    
+    const params = new URLSearchParams(searchParams.toString());
+    if (searchInput.trim() !== '') {
+      params.set('search', searchInput.trim());
+    } else {
+      params.delete('search');
+    }
+    params.delete('page');
+    router.push(`/shop?${params.toString()}`);
+    setShowShopSearchDropdown(false);
+  };
+
   const handleSortChange = (sortVal: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('sort', sortVal);
@@ -164,6 +179,11 @@ function ShopContent() {
               onChange={e => {
                 setSearchInput(e.target.value);
                 handleSearchChange(e.target.value);
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  handleSearchSubmit();
+                }
               }}
               className="w-full h-12 pl-12 pr-10 bg-surface-dark border border-border-dark/60 rounded-[4px] text-sm text-warm-ivory placeholder-gray-400 focus:outline-none focus:border-antique-gold focus:ring-0 transition-colors font-sans"
             />
