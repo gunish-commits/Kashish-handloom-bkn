@@ -138,6 +138,11 @@ function ShopContent() {
     params.delete('page');
     router.push(`/shop?${params.toString()}`);
     setShowShopSearchDropdown(false);
+
+    // Auto-dismiss virtual keyboard
+    if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
   };
 
   const handleSortChange = (sortVal: string) => {

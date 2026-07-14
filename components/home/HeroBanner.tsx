@@ -146,14 +146,21 @@ export default function HeroBanner() {
                     {slide.sub}
                   </p>
 
-                  {/* Action Button */}
-                  <div className="pt-2.5">
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-3 pt-2.5">
                     <Button
                       variant="primary"
                       href={slide.btnLink}
-                      className="w-full sm:w-auto h-11 px-8 uppercase tracking-widest text-[11px] font-bold"
+                      className="w-full sm:w-auto h-11 px-8 uppercase tracking-widest text-[11px] font-bold flex items-center justify-center"
                     >
                       {slide.btnText}
+                    </Button>
+                    <Button
+                      variant="outline-dark"
+                      href="/shop"
+                      className="w-full sm:w-auto h-11 px-8 uppercase tracking-widest text-[11px] font-bold border border-warm-ivory/30 hover:border-antique-gold hover:text-antique-gold transition-colors flex items-center justify-center bg-black/10"
+                    >
+                      Shop All
                     </Button>
                   </div>
                 </div>

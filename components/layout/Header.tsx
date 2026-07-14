@@ -120,6 +120,11 @@ export default function Header() {
       setSearchResults([]);
       router.push(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
+      
+      // Auto-dismiss virtual keyboard
+      if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
     }
   };
 
@@ -385,15 +390,41 @@ export default function Header() {
               </a>
             </div>
 
-            {/* Mobile-only Hamburger Button (Far Right, nothing else in between) */}
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden text-warm-ivory hover:text-antique-gold p-1.5 transition-colors cursor-pointer"
-              aria-label="Open menu drawer"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
+            {/* Mobile Actions (Search, Cart & Hamburger) */}
+            <div className="flex md:hidden items-center gap-3">
+              {/* Mobile Search Icon */}
+              <Link
+                href="/shop"
+                className="text-warm-ivory hover:text-antique-gold p-1.5 transition-colors"
+                aria-label="Search catalog"
+              >
+                <Search className="w-5 h-5 text-antique-gold" />
+              </Link>
+
+              {/* Mobile Cart Icon with Badge */}
+              <Link
+                href="/cart"
+                className="text-warm-ivory hover:text-antique-gold p-1.5 transition-colors relative"
+                aria-label="Open shopping cart"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                {cartCount > 0 && (
+                  <span className="absolute top-0.5 right-0.5 bg-antique-gold text-ink font-mono text-[8px] font-bold w-3.5 h-3.5 rounded-full flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+
+              {/* Mobile-only Hamburger Button */}
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(true)}
+                className="text-warm-ivory hover:text-antique-gold p-1.5 transition-colors cursor-pointer"
+                aria-label="Open menu drawer"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+            </div>
           </div>
         </div>
       </header>
