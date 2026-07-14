@@ -174,12 +174,12 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
               >
                 {isInWishlist(id) ? (
                   <>
-                    <span>❤️</span>
+                    <Heart className="w-4 h-4 fill-[#C0445A] text-[#C0445A] shrink-0" />
                     <span className="wishlist-btn-label">Wishlisted</span>
                   </>
                 ) : (
                   <>
-                    <span>🤍</span>
+                    <Heart className="w-4 h-4 text-[#C0445A] shrink-0" />
                     <span className="wishlist-btn-label">Wishlist</span>
                   </>
                 )}
@@ -212,12 +212,12 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
           >
             {isInWishlist(id) ? (
               <>
-                <span>❤️</span>
+                <Heart className="w-4 h-4 fill-[#C0445A] text-[#C0445A] shrink-0" />
                 <span>Wishlisted</span>
               </>
             ) : (
               <>
-                <span>🤍</span>
+                <Heart className="w-4 h-4 text-[#C0445A] shrink-0" />
                 <span>Wishlist</span>
               </>
             )}

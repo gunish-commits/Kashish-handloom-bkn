@@ -31,46 +31,44 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  // IMPORTANT: Do not add any logic between createServerClient
-  // and supabase.auth.getUser(). A middleware error could make
-  // the session appear invalid.
+  // Get active session user details from Supabase auth
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const adminEmail = process.env.ADMIN_EMAIL || 'kashishhandloombkn@gmail.com';
+  const isUserAdmin = user && (user.email === adminEmail || user.email === 'kashishhandloombkn@gmail.com');
+
   // Only protect /admin routes (except /admin/login itself)
   if (
     request.nextUrl.pathname.startsWith('/admin') &&
-    !request.nextUrl.pathname.startsWith('/admin/login') &&
-    !user
+    !request.nextUrl.pathname.startsWith('/admin/login')
   ) {
-    // No session — redirect to admin login
-    const url = request.nextUrl.clone();
-    url.pathname = '/admin/login';
-    return NextResponse.redirect(url);
+    if (!user || !isUserAdmin) {
+      // No session or not admin — redirect to admin login
+      const url = request.nextUrl.clone();
+      url.pathname = '/admin/login';
+      return NextResponse.redirect(url);
+    }
   }
 
-  // If user is logged in and tries to access /admin/login
-  // redirect them to dashboard instead
+  // If user is logged in as admin and tries to access /admin/login
   if (
     request.nextUrl.pathname === '/admin/login' &&
-    user
+    user &&
+    isUserAdmin
   ) {
     const url = request.nextUrl.clone();
     url.pathname = '/admin/dashboard';
     return NextResponse.redirect(url);
   }
 
-  // CRITICAL: Always return supabaseResponse, never a new NextResponse
-  // This ensures cookies are properly passed through
   return supabaseResponse;
 }
 
 export const config = {
   matcher: [
-    // Match all admin routes
+    // Match only admin routes for performance and safety
     '/admin/:path*',
-    // Exclude static files and API routes from middleware
-    '/((?!_next/static|_next/image|favicon.ico|api/).*)',
   ],
 };

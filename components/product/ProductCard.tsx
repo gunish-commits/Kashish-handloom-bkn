@@ -91,9 +91,9 @@ export default function ProductCard({ product }: ProductCardProps) {
           aria-label="Toggle Wishlist"
         >
           {isInWishlist(id) ? (
-            <span>❤️</span>
+            <Heart className="w-[18px] h-[18px] fill-[#C0445A] text-[#C0445A] transition-all" />
           ) : (
-            <span>🤍</span>
+            <Heart className="w-[18px] h-[18px] text-[#C0445A] transition-all" />
           )}
         </button>
       </Link>
