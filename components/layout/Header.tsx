@@ -34,6 +34,7 @@ export default function Header() {
 
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const accountMenuRef = useRef<HTMLDivElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   // Monitor scroll for sticky compression
   useEffect(() => {
@@ -78,11 +79,14 @@ export default function Header() {
     }
   }, [user?.id, isAdmin]);
 
-  // Click outside to dismiss account menu
+  // Click outside to dismiss menus
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (accountMenuRef.current && !accountMenuRef.current.contains(e.target as Node)) {
         setAccountMenuOpen(false);
+      }
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setShowSearchDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleOutsideClick);
@@ -110,8 +114,10 @@ export default function Header() {
   };
 
   const handleSearchSubmit = () => {
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     if (searchQuery.trim() !== '') {
       setShowSearchDropdown(false);
+      setSearchResults([]);
       router.push(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
     }
@@ -182,7 +188,7 @@ export default function Header() {
             {/* Desktop Actions Wrapper */}
             <div className="hidden md:flex items-center space-x-4">
               {/* Live Search Input */}
-              <div className="relative w-44 lg:w-60">
+              <div className="relative w-44 lg:w-60" ref={searchContainerRef}>
                 <input
                   type="text"
                   placeholder="Search bedsheets, curtains..."
@@ -195,7 +201,10 @@ export default function Header() {
                   }}
                   className="w-full h-8 pl-8 pr-7 bg-surface-dark border border-border-dark/50 rounded-[4px] text-xs text-warm-ivory placeholder-gray-400 focus:outline-none focus:border-antique-gold focus:ring-0 transition-colors"
                 />
-                <Search className="w-3.5 h-3.5 text-antique-gold absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <Search
+                  onClick={handleSearchSubmit}
+                  className="w-3.5 h-3.5 text-antique-gold absolute left-2.5 top-1/2 -translate-y-1/2 cursor-pointer hover:text-warm-ivory transition-colors"
+                />
                 {searchQuery && (
                   <button
                     type="button"

@@ -28,6 +28,7 @@ function ShopContent() {
   
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const liveSearchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const shopSearchRef = useRef<HTMLDivElement>(null);
 
   // Pagination page tracker
   const [page, setPage] = useState(1);
@@ -79,6 +80,17 @@ function ShopContent() {
   useEffect(() => {
     setPage(1);
   }, [searchParams]);
+
+  // Click outside to dismiss live search dropdown
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (shopSearchRef.current && !shopSearchRef.current.contains(e.target as Node)) {
+        setShowShopSearchDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, []);
 
   // Handle live search input changes with 300ms debounce
   const handleSearchChange = (val: string) => {
@@ -171,7 +183,7 @@ function ShopContent() {
           </div>
 
           {/* Search Box */}
-          <div className="max-w-xl mx-auto relative select-none">
+          <div className="max-w-xl mx-auto relative select-none" ref={shopSearchRef}>
             <input
               type="text"
               placeholder="Search bedsheets, curtains, blankets..."
@@ -187,7 +199,10 @@ function ShopContent() {
               }}
               className="w-full h-12 pl-12 pr-10 bg-surface-dark border border-border-dark/60 rounded-[4px] text-sm text-warm-ivory placeholder-gray-400 focus:outline-none focus:border-antique-gold focus:ring-0 transition-colors font-sans"
             />
-            <Search className="w-5 h-5 text-antique-gold absolute left-4 top-1/2 -translate-y-1/2" />
+            <Search
+              onClick={handleSearchSubmit}
+              className="w-5 h-5 text-antique-gold absolute left-4 top-1/2 -translate-y-1/2 cursor-pointer hover:text-pale-linen transition-colors"
+            />
             {searchInput && (
               <button
                 type="button"
