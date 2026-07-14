@@ -28,7 +28,7 @@ function ShopContent() {
   
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const liveSearchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const shopSearchRef = useRef<HTMLDivElement>(null);
+  const shopSearchRef = useRef<HTMLFormElement>(null);
 
   // Pagination page tracker
   const [page, setPage] = useState(1);
@@ -183,9 +183,18 @@ function ShopContent() {
           </div>
 
           {/* Search Box */}
-          <div className="max-w-xl mx-auto relative select-none" ref={shopSearchRef}>
+          <form
+            action=""
+            onSubmit={e => {
+              e.preventDefault();
+              handleSearchSubmit();
+            }}
+            className="max-w-xl mx-auto relative select-none"
+            ref={shopSearchRef}
+          >
             <input
-              type="text"
+              type="search"
+              enterKeyHint="search"
               placeholder="Search bedsheets, curtains, blankets..."
               value={searchInput}
               onChange={e => {
@@ -243,7 +252,7 @@ function ShopContent() {
                 ))}
               </div>
             )}
-          </div>
+          </form>
         </div>
       </div>
 

@@ -516,3 +516,12 @@ body {
   60%  { transform: scale(1.3); }
   100% { transform: scale(1);   opacity: 1; }
 }
+
+/* Suppress native search input cancels & indicators for WebKit */
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  display: none;
+}

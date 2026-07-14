@@ -34,7 +34,7 @@ export default function Header() {
 
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const accountMenuRef = useRef<HTMLDivElement>(null);
-  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const searchContainerRef = useRef<HTMLFormElement>(null);
 
   // Monitor scroll for sticky compression
   useEffect(() => {
@@ -188,9 +188,18 @@ export default function Header() {
             {/* Desktop Actions Wrapper */}
             <div className="hidden md:flex items-center space-x-4">
               {/* Live Search Input */}
-              <div className="relative w-44 lg:w-60" ref={searchContainerRef}>
+              <form
+                action=""
+                onSubmit={e => {
+                  e.preventDefault();
+                  handleSearchSubmit();
+                }}
+                className="relative w-44 lg:w-60"
+                ref={searchContainerRef}
+              >
                 <input
-                  type="text"
+                  type="search"
+                  enterKeyHint="search"
                   placeholder="Search bedsheets, curtains..."
                   value={searchQuery}
                   onChange={e => handleSearchChange(e.target.value)}
@@ -255,7 +264,7 @@ export default function Header() {
                     </Link>
                   </div>
                 )}
-              </div>
+              </form>
 
               {/* Customer Account Icon */}
               <div className="relative" ref={accountMenuRef}>
