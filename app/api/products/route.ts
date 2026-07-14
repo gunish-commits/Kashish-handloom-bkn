@@ -1,6 +1,130 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '../../../lib/supabase/server';
 
+// Standard Levenshtein Distance implementation for fuzzy spelling matching
+function levenshtein(a: string, b: string): number {
+  const tmp = [];
+  let i, j;
+  for (i = 0; i <= a.length; i++) {
+    tmp.push([i]);
+  }
+  for (j = 1; j <= b.length; j++) {
+    tmp[0].push(j);
+  }
+  for (i = 1; i <= a.length; i++) {
+    for (j = 1; j <= b.length; j++) {
+      tmp[i][j] = Math.min(
+        tmp[i - 1][j] + 1,
+        tmp[i][j - 1] + 1,
+        tmp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+      );
+    }
+  }
+  return tmp[a.length][b.length];
+}
+
+// In-memory fuzzy match, rank, and sorting algorithm
+function fuzzySearch(products: any[], searchStr: string): any[] {
+  const queryLower = searchStr.toLowerCase().trim();
+  const queryWords = queryLower.split(/\s+/).filter(Boolean);
+  const queryNoSpaces = queryLower.replace(/\s+/g, '');
+
+  if (queryWords.length === 0) return products;
+
+  const scoredProducts = products.map((product: any) => {
+    let score = 0;
+    const nameLower = (product.name || '').toLowerCase();
+    const descLower = (product.description || '').toLowerCase();
+    const fabricLower = (product.fabric || '').toLowerCase();
+    const skuLower = (product.sku || '').toLowerCase();
+    const categoryName = (product.categories?.name || '').toLowerCase();
+
+    const nameNoSpaces = nameLower.replace(/\s+/g, '');
+
+    // 1. Check for exact full phrase match
+    if (nameLower === queryLower) {
+      score += 100;
+    } else if (nameLower.includes(queryLower)) {
+      score += 40;
+    }
+
+    // 2. Check for collapsed spaces (e.g. pillowcover <-> pillow cover)
+    if (queryNoSpaces.length > 3) {
+      if (nameNoSpaces === queryNoSpaces) {
+        score += 80;
+      } else if (nameNoSpaces.includes(queryNoSpaces) || queryNoSpaces.includes(nameNoSpaces)) {
+        score += 35;
+      }
+    }
+
+    // 3. Compute token word match scores
+    const nameWords = nameLower.split(/\s+/).filter(Boolean);
+    const categoryWords = categoryName.split(/\s+/).filter(Boolean);
+    const fabricWords = fabricLower.split(/\s+/).filter(Boolean);
+
+    queryWords.forEach((qWord: string) => {
+      let bestWordScore = 0;
+
+      // Check name words
+      nameWords.forEach((pWord: string) => {
+        let wordScore = 0;
+        if (pWord === qWord) {
+          wordScore = 15; // Exact word match
+        } else if (pWord.startsWith(qWord) || qWord.startsWith(pWord)) {
+          wordScore = 8; // Prefix word match
+        } else if (pWord.includes(qWord) || qWord.includes(pWord)) {
+          wordScore = 5; // Substring word match
+        } else {
+          // Fuzzy match on spelling
+          const dist = levenshtein(qWord, pWord);
+          const maxAllowedDist = qWord.length >= 6 ? 2 : 1;
+          if (dist <= maxAllowedDist) {
+            wordScore = 3; // Misspelled word match
+          }
+        }
+        if (wordScore > bestWordScore) bestWordScore = wordScore;
+      });
+
+      // Check category words
+      categoryWords.forEach((cWord: string) => {
+        let wordScore = 0;
+        if (cWord === qWord) {
+          wordScore = 10;
+        } else if (cWord.includes(qWord)) {
+          wordScore = 5;
+        } else {
+          const dist = levenshtein(qWord, cWord);
+          if (dist <= 1) {
+            wordScore = 2;
+          }
+        }
+        const weightedScore = wordScore * 1.2;
+        if (weightedScore > bestWordScore) bestWordScore = weightedScore;
+      });
+
+      // Check fabric words
+      fabricWords.forEach((fWord: string) => {
+        if (fWord === qWord) {
+          bestWordScore = Math.max(bestWordScore, 8);
+        }
+      });
+
+      score += bestWordScore;
+    });
+
+    // 4. Boost featured items and in-stock items
+    if (product.featured) score += 2;
+    if (product.stock > 0) score += 1;
+
+    return { product, score };
+  });
+
+  return scoredProducts
+    .filter(item => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map(item => item.product);
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -59,85 +183,6 @@ export async function GET(request: NextRequest) {
       query = query.in('return_policy', returnPolicies);
     }
 
-    // Search query: Name, Description, Fabric, SKU, and Category Name with Relevance Sorting
-    if (search && search.trim() !== '') {
-      const trimmedSearch = search.trim();
-      
-      // 1. Fetch products matching columns directly
-      const { data: directProducts, error: directError } = await supabase
-        .from('products')
-        .select('*, categories(name, slug)')
-        .eq('active', true)
-        .or(`name.ilike.%${trimmedSearch}%,description.ilike.%${trimmedSearch}%,fabric.ilike.%${trimmedSearch}%,sku.ilike.%${trimmedSearch}%`);
-
-      if (directError) throw directError;
-
-      // 2. Fetch categories matching search query
-      const { data: catData, error: catError } = await supabase
-        .from('categories')
-        .select('id')
-        .ilike('name', `%${trimmedSearch}%`);
-
-      let catProducts: any[] = [];
-      if (!catError && catData && catData.length > 0) {
-        const catIds = catData.map(c => c.id);
-        const { data: matchedCatProducts } = await supabase
-          .from('products')
-          .select('*, categories(name, slug)')
-          .eq('active', true)
-          .in('category_id', catIds);
-        if (matchedCatProducts) catProducts = matchedCatProducts;
-      }
-
-      // 3. Merge and deduplicate results
-      const mergedMap = new Map<string, any>();
-      directProducts?.forEach(p => mergedMap.set(p.id, p));
-      catProducts.forEach(p => mergedMap.set(p.id, p));
-      
-      const allResults = Array.from(mergedMap.values());
-
-      // 4. Sort results by relevance:
-      // - Exact name match first
-      // - Starts with name match next
-      // - Partial name match next
-      // - Featured flag
-      const queryLower = trimmedSearch.toLowerCase();
-      allResults.sort((a, b) => {
-        const aName = a.name.toLowerCase();
-        const bName = b.name.toLowerCase();
-        
-        const aExact = aName === queryLower ? 1 : 0;
-        const bExact = bName === queryLower ? 1 : 0;
-        if (aExact !== bExact) return bExact - aExact;
-        
-        const aStarts = aName.startsWith(queryLower) ? 1 : 0;
-        const bStarts = bName.startsWith(queryLower) ? 1 : 0;
-        if (aStarts !== bStarts) return bStarts - aStarts;
-
-        const aPartial = aName.includes(queryLower) ? 1 : 0;
-        const bPartial = bName.includes(queryLower) ? 1 : 0;
-        if (aPartial !== bPartial) return bPartial - aPartial;
-
-        const aFeatured = a.featured ? 1 : 0;
-        const bFeatured = b.featured ? 1 : 0;
-        if (aFeatured !== bFeatured) return bFeatured - aFeatured;
-
-        return 0;
-      });
-
-      // 5. Paginate final relevance-sorted array
-      const total = allResults.length;
-      const from = (page - 1) * limit;
-      const slicedProducts = allResults.slice(from, from + limit);
-      const hasMore = from + slicedProducts.length < total;
-
-      return NextResponse.json({
-        products: slicedProducts,
-        total,
-        hasMore,
-      });
-    }
-
     // Price filters: Coalesces sale_price and price check
     if (minPrice) {
       const min = parseFloat(minPrice);
@@ -153,7 +198,28 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Sorting
+    // If search keyword is active, fetch candidates and do fuzzy match
+    if (search && search.trim() !== '') {
+      const { data: candidates, error: fetchError } = await query;
+      if (fetchError) throw fetchError;
+
+      const trimmedSearch = search.trim();
+      const results = fuzzySearch(candidates || [], trimmedSearch);
+
+      // Paginate fuzzy matched array
+      const total = results.length;
+      const from = (page - 1) * limit;
+      const slicedProducts = results.slice(from, from + limit);
+      const hasMore = from + slicedProducts.length < total;
+
+      return NextResponse.json({
+        products: slicedProducts,
+        total,
+        hasMore,
+      });
+    }
+
+    // Otherwise, apply default sorting and pagination on Database
     switch (sort) {
       case 'price_asc':
         query = query.order('price', { ascending: true });
@@ -170,7 +236,6 @@ export async function GET(request: NextRequest) {
         break;
     }
 
-    // Pagination bounds calculation
     const from = (page - 1) * limit;
     const to = from + limit - 1;
     query = query.range(from, to);
