@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient, verifyAuth } from '../../../lib/supabase/server';
+import { createAdminClient, verifyAuth } from '../../../lib/supabase/server';
 
 // Get complaints for logged-in customer
 export async function GET(request: NextRequest) {
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: authError || 'Unauthorized' }, { status: 401 });
     }
 
-    const supabase = createServerClient();
+    const supabase = createAdminClient();
     const { data: complaints, error } = await supabase
       .from('complaints')
       .select('*')
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Subject and description are required' }, { status: 400 });
     }
 
-    const supabase = createServerClient();
+    const supabase = createAdminClient();
     
     const { data: complaint, error } = await supabase
       .from('complaints')
