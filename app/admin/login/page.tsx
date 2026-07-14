@@ -44,16 +44,21 @@ export default function AdminLoginPage() {
 
       if (error) throw error;
 
-      // check if admin role is valid
-      const { data: profile } = await supabase
-        .from('customer_profiles')
-        .select('role')
-        .eq('id', data.user.id)
-        .single();
+      const isMasterAdmin = data.user.email?.toLowerCase() === 'kashishhandloombkn@gmail.com' ||
+                            data.user.email?.toLowerCase() === process.env.NEXT_PUBLIC_ADMIN_EMAIL?.toLowerCase();
 
-      if (!profile || (profile.role !== 'admin' && profile.role !== 'owner')) {
-        await supabase.auth.signOut();
-        throw new Error('Unauthorized portal access.');
+      if (!isMasterAdmin) {
+        // check if admin role is valid in database
+        const { data: profile } = await supabase
+          .from('customer_profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .single();
+
+        if (!profile || (profile.role !== 'admin' && profile.role !== 'owner')) {
+          await supabase.auth.signOut();
+          throw new Error('Unauthorized portal access.');
+        }
       }
 
       window.location.href = '/admin/dashboard';
