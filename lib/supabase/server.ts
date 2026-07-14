@@ -1,9 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
+import { createServerClient as createSSRClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder-url.supabase.co';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-service-key';
 
+// Admin client with service role key (bypasses RLS)
 export function createAdminClient() {
   return createClient(supabaseUrl, supabaseServiceKey, {
     auth: {
@@ -13,8 +16,35 @@ export function createAdminClient() {
   });
 }
 
+// Legacy client for API route token validation
 export function createServerClient() {
   return createClient(supabaseUrl, supabaseAnonKey);
+}
+
+// New server client with cookie integration for layouts/middleware
+export async function createSupabaseServerClient() {
+  const cookieStore = await cookies();
+
+  return createSSRClient(
+    supabaseUrl,
+    supabaseAnonKey,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
+          } catch {
+            // Called from a Server Component — safe to ignore in Next.js
+          }
+        },
+      },
+    }
+  );
 }
 
 export async function verifyAuth(request: Request) {
@@ -35,6 +65,7 @@ export async function verifyAuth(request: Request) {
     return { user: null, error: err?.message || 'Internal Auth Error' };
   }
 }
+
 export async function verifyAdmin(request: Request) {
   const { user, error } = await verifyAuth(request);
   if (error || !user) {

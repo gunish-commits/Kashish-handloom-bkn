@@ -4,9 +4,12 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { useAuth } from './AuthContext';
 import { supabase } from '../lib/supabase/client';
 import { Product } from '../types';
+import { useRouter } from 'next/navigation';
 
 interface ToastState {
-  message: string;
+  line1: string;
+  line2?: string | null;
+  showSignInLink?: boolean;
   visible: boolean;
   type: 'add' | 'remove';
 }
@@ -25,17 +28,22 @@ const WishlistContext = createContext<WishlistContextType | undefined>(undefined
 
 export function WishlistProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const router = useRouter();
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
   const [wishlistItems, setWishlistItems] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<ToastState | null>(null);
 
-  // Clear toast after 2 seconds
+  // Guest modal states
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [pendingProduct, setPendingProduct] = useState<Product | null>(null);
+
+  // Clear toast after 2.5 seconds
   useEffect(() => {
     if (toast?.visible) {
       const timer = setTimeout(() => {
         setToast(null);
-      }, 2000);
+      }, 2500);
       return () => clearTimeout(timer);
     }
   }, [toast]);
@@ -109,21 +117,52 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     fetchProducts();
   }, [wishlistIds]);
 
-  const toggleWishlist = async (product: Product) => {
-    const isAdded = wishlistIds.includes(product.id);
+  // Auto-add pending wishlist item after login
+  useEffect(() => {
+    const handlePostLoginWishlist = async () => {
+      if (!user) return;
+      const pendingId = sessionStorage.getItem('kh_pending_wishlist');
+      if (pendingId) {
+        try {
+          await supabase.from('wishlists').upsert(
+            { user_id: user.id, product_id: pendingId },
+            { onConflict: 'user_id,product_id' }
+          );
+          sessionStorage.removeItem('kh_pending_wishlist');
+          
+          // Update local state
+          setWishlistIds(prev => Array.from(new Set([...prev, pendingId])));
+          setToast({
+            line1: '❤️ Saved permanently to account!',
+            line2: null,
+            visible: true,
+            type: 'add',
+          });
+        } catch (err) {
+          console.error('Failed to sync pending wishlist item after login:', err);
+        }
+      }
+    };
+
+    handlePostLoginWishlist();
+  }, [user]);
+
+  const performWishlistToggle = async (product: Product, isAdded: boolean) => {
     let newIds: string[];
 
     if (isAdded) {
       newIds = wishlistIds.filter(id => id !== product.id);
       setToast({
-        message: 'Removed from Wishlist',
+        line1: '🤍 Removed from Wishlist',
+        line2: null,
         visible: true,
         type: 'remove',
       });
     } else {
       newIds = [...wishlistIds, product.id];
       setToast({
-        message: '❤️ Added to Wishlist',
+        line1: '❤️ Added to Wishlist!',
+        line2: null,
         visible: true,
         type: 'add',
       });
@@ -147,11 +186,57 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         }
       } catch (err) {
         console.warn('DB sync failed, keeping local update:', err);
-        // Fallback to local storage
         localStorage.setItem('kh_wishlist', JSON.stringify(newIds));
       }
     } else {
       localStorage.setItem('kh_wishlist', JSON.stringify(newIds));
+    }
+  };
+
+  const toggleWishlist = async (product: Product) => {
+    const isAdded = wishlistIds.includes(product.id);
+
+    if (user) {
+      // Logged in — wishlist directly
+      await performWishlistToggle(product, isAdded);
+      return;
+    }
+
+    // Guest user logic
+    if (isAdded) {
+      // Already wishlisted as guest — allow removing directly without modal prompt
+      await performWishlistToggle(product, true);
+      return;
+    }
+
+    // Not wishlisted yet as guest — show the sign-in modal
+    setPendingProduct(product);
+    setShowAuthModal(true);
+  };
+
+  const handleModalSignIn = () => {
+    setShowAuthModal(false);
+    if (pendingProduct) {
+      sessionStorage.setItem('kh_pending_wishlist', pendingProduct.id);
+    }
+    router.push('/login?redirect=/wishlist');
+  };
+
+  const handleModalGuest = () => {
+    setShowAuthModal(false);
+    if (pendingProduct) {
+      const newIds = [...wishlistIds, pendingProduct.id];
+      setWishlistIds(newIds);
+      localStorage.setItem('kh_wishlist', JSON.stringify(newIds));
+
+      setToast({
+        line1: '❤️ Added to Wishlist',
+        line2: '💡 Sign in to save permanently',
+        showSignInLink: true,
+        visible: true,
+        type: 'add',
+      });
+      setPendingProduct(null);
     }
   };
 
@@ -175,10 +260,50 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     >
       {children}
       
-      {/* Premium Elegant Toast Overlay */}
+      {/* Premium Elegant Toast Overlay (supports sign-in links and subtitle lines) */}
       {toast?.visible && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[9999] bg-ink/95 border border-antique-gold text-warm-ivory text-xs sm:text-sm font-sans font-medium uppercase tracking-wider px-6 py-3.5 rounded-[4px] shadow-[0_4px_24px_rgba(26,17,10,0.4)] flex items-center gap-2.5 select-none pointer-events-none transition-all duration-300 animate-toast">
-          <span>{toast.message}</span>
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[9999] bg-ink/95 border border-antique-gold text-warm-ivory text-xs sm:text-sm font-sans font-medium px-6 py-3.5 rounded-[4px] shadow-[0_4px_24px_rgba(26,17,10,0.4)] flex flex-col items-center gap-1.5 select-none animate-toast max-w-[90vw] text-center pointer-events-auto">
+          <div className="flex items-center gap-2">
+            <span>{toast.line1}</span>
+            {toast.showSignInLink && (
+              <button
+                type="button"
+                onClick={() => router.push('/login')}
+                className="text-antique-gold hover:text-white underline font-bold uppercase tracking-wider text-[10px] ml-1.5 cursor-pointer focus:outline-none"
+              >
+                [Sign In]
+              </button>
+            )}
+          </div>
+          {toast.line2 && (
+            <span className="text-[10px] text-pale-linen/85 tracking-wide">
+              {toast.line2}
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Guest Sign-In Prompt Modal */}
+      {showAuthModal && (
+        <div className="wishlist-auth-modal-overlay" onClick={() => setShowAuthModal(false)}>
+          <div className="wishlist-auth-modal" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="close-btn" onClick={() => setShowAuthModal(false)}>
+              ×
+            </button>
+            <span className="heart-icon">❤️</span>
+            <h3>Save to Wishlist</h3>
+            <div className="divider"></div>
+            <p>
+              Create a free account to save your wishlist permanently across all your devices.
+            </p>
+            <button type="button" className="btn-primary" onClick={handleModalSignIn}>
+              Sign In / Create Account
+            </button>
+            <button type="button" className="btn-guest" onClick={handleModalGuest}>
+              Continue as Guest
+              <span>(saved on this device only)</span>
+            </button>
+          </div>
         </div>
       )}
     </WishlistContext.Provider>

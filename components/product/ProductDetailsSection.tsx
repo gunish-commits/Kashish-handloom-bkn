@@ -154,8 +154,8 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
           </div>
 
           {/* Action triggers */}
-          <div className="flex flex-col gap-3 pt-2">
-            <div className="flex flex-col sm:flex-row gap-3">
+          <div className="product-actions flex flex-col gap-2.5 pt-2">
+            <div className="add-to-cart-btn w-full">
               <Button
                 variant="primary"
                 onClick={handleAddToCart}
@@ -163,57 +163,62 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
               >
                 Add to Cart
               </Button>
+            </div>
+            
+            <div className="product-actions-row flex gap-[10px] w-full">
+              {/* Wishlist Button (40% width) */}
+              <button
+                type="button"
+                onClick={() => toggleWishlist(product)}
+                className={`product-detail-wishlist-btn w-[40%] flex-shrink-0 flex-grow-0 ${isInWishlist(id) ? 'wishlisted' : ''}`}
+              >
+                {isInWishlist(id) ? (
+                  <>
+                    <span>❤️</span>
+                    <span className="wishlist-btn-label">Wishlisted</span>
+                  </>
+                ) : (
+                  <>
+                    <span>🤍</span>
+                    <span className="wishlist-btn-label">Wishlist</span>
+                  </>
+                )}
+              </button>
+
+              {/* WhatsApp Order Button (60% width) */}
               <Button
                 variant="whatsapp"
                 onClick={handleWhatsAppDirectOrder}
-                className="w-full h-12 uppercase tracking-widest text-[11px] font-semibold flex items-center gap-2"
+                className="whatsapp-order-btn flex-1 h-12 uppercase tracking-widest text-[11px] font-semibold flex items-center justify-center gap-2"
               >
                 <MessageCircle className="w-4 h-4 fill-current text-white shrink-0" />
                 <span>Order on WhatsApp</span>
               </Button>
             </div>
-            
-            <button
-              type="button"
-              onClick={() => toggleWishlist(product)}
-              className="w-full h-11 border border-gray-200 hover:border-gray-300 bg-white text-ink hover:text-deep-maroon font-sans font-bold uppercase tracking-wider text-[11px] rounded-[4px] flex items-center justify-center gap-2 transition-all cursor-pointer focus:outline-none"
-            >
-              {isInWishlist(id) ? (
-                <>
-                  <span className="text-sm">❤️</span>
-                  <span>In Wishlist</span>
-                </>
-              ) : (
-                <>
-                  <span className="text-sm">♡</span>
-                  <span>Add to Wishlist</span>
-                </>
-              )}
-            </button>
           </div>
         </div>
       )}
 
       {/* Out of Stock CTA */}
       {isOutOfStock && (
-        <div className="space-y-3">
+        <div className="space-y-3 pt-2">
           <Button variant="secondary" disabled fullWidth className="h-12 uppercase tracking-widest text-[11px] font-semibold">
             Out of Stock
           </Button>
           <button
             type="button"
             onClick={() => toggleWishlist(product)}
-            className="w-full h-11 border border-gray-200 hover:border-gray-300 bg-white text-ink hover:text-deep-maroon font-sans font-bold uppercase tracking-wider text-[11px] rounded-[4px] flex items-center justify-center gap-2 transition-all cursor-pointer focus:outline-none"
+            className={`product-detail-wishlist-btn w-full ${isInWishlist(id) ? 'wishlisted' : ''}`}
           >
             {isInWishlist(id) ? (
               <>
-                <span className="text-sm">❤️</span>
-                <span>In Wishlist</span>
+                <span>❤️</span>
+                <span>Wishlisted</span>
               </>
             ) : (
               <>
-                <span className="text-sm">♡</span>
-                <span>Add to Wishlist</span>
+                <span>🤍</span>
+                <span>Wishlist</span>
               </>
             )}
           </button>

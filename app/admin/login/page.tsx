@@ -56,7 +56,7 @@ export default function AdminLoginPage() {
         throw new Error('Unauthorized portal access.');
       }
 
-      router.push('/admin/dashboard');
+      window.location.href = '/admin/dashboard';
     } catch (err: any) {
       console.error(err);
       setAuthError(err.message || 'Login failed.');
