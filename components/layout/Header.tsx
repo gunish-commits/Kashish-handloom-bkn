@@ -134,6 +134,7 @@ export default function Header() {
     { name: 'Home', href: '/' },
     { name: 'Shop', href: '/shop' },
     { name: 'Offers', href: '/offers' },
+    ...(user && !isAdmin ? [{ name: 'My Orders', href: '/account?tab=orders' }] : []),
     { name: 'About', href: '/about' },
     { name: 'Contact', href: '/contact' },
   ];
@@ -286,7 +287,7 @@ export default function Header() {
                               My Account
                             </Link>
                             <Link
-                              href="/account#orders"
+                              href="/account?tab=orders"
                               onClick={() => setAccountMenuOpen(false)}
                               className="block px-4 py-2.5 text-warm-ivory hover:bg-surface-dark/85 hover:text-antique-gold transition-colors"
                             >

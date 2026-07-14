@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
-import { X, LogOut, User } from 'lucide-react';
+import { X, LogOut, User, ShoppingBag } from 'lucide-react';
 
 interface MobileNavProps {
   isOpen: boolean;
@@ -21,6 +21,7 @@ export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
     { name: 'Home', href: '/' },
     { name: 'Shop', href: '/shop' },
     { name: 'Offers', href: '/offers' },
+    ...(user ? [{ name: 'My Orders', href: '/account?tab=orders' }] : []),
     { name: 'Cart', href: '/cart' },
     { name: 'Wishlist', href: '/wishlist' },
     { name: 'About', href: '/about' },
@@ -73,6 +74,14 @@ export default function MobileNav({ isOpen, onClose }: MobileNavProps) {
             >
               <User className="w-4 h-4" />
               <span>MY ACCOUNT</span>
+            </Link>
+            <Link
+              href="/account?tab=orders"
+              onClick={onClose}
+              className="font-sans text-base tracking-wider flex items-center gap-2 text-warm-ivory hover:text-antique-gold transition-colors"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              <span>MY ORDERS</span>
             </Link>
             <button
               type="button"

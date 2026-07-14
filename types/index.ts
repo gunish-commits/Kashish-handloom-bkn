@@ -61,7 +61,7 @@ export interface Offer {
   } | null;
 }
 
-export type OrderStatus = 'pending' | 'new' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+export type OrderStatus = 'pending' | 'new' | 'confirmed' | 'processing' | 'packed' | 'shipped' | 'out_for_delivery' | 'delivered' | 'cancelled';
 
 export interface OrderItem {
   product_id: string;

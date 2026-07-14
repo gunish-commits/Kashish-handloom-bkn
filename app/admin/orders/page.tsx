@@ -31,7 +31,9 @@ const ORDER_STATUSES: { key: OrderStatus; label: string; emoji: string; color: s
   { key: 'new', label: 'New', emoji: '🆕', color: 'bg-blue-50 text-[#2563EB] border-blue-200', hex: '#2563EB' },
   { key: 'confirmed', label: 'Confirmed', emoji: '✅', color: 'bg-indigo-50 text-[#7C3AED] border-indigo-200', hex: '#7C3AED' },
   { key: 'processing', label: 'Processing', emoji: '⚙️', color: 'bg-amber-50 text-[#D97706] border-amber-200', hex: '#D97706' },
+  { key: 'packed', label: 'Packed', emoji: '📦', color: 'bg-teal-50 text-[#0D9488] border-teal-200', hex: '#0D9488' },
   { key: 'shipped', label: 'Shipped', emoji: '🚚', color: 'bg-orange-50 text-[#EA580C] border-orange-200', hex: '#EA580C' },
+  { key: 'out_for_delivery', label: 'Out for Delivery', emoji: '🛵', color: 'bg-purple-50 text-[#9333EA] border-purple-200', hex: '#9333EA' },
   { key: 'delivered', label: 'Delivered', emoji: '✓', color: 'bg-emerald-50 text-[#16A34A] border-emerald-200', hex: '#16A34A' },
   { key: 'cancelled', label: 'Cancelled', emoji: '✕', color: 'bg-rose-50 text-[#DC2626] border-rose-200', hex: '#DC2626' },
 ];

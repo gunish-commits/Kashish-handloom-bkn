@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../../context/AuthContext';
 import { Order, Complaint, OrderStatus, ComplaintStatus } from '../../../types';
 import Button from '../../../components/ui/Button';
@@ -21,12 +21,21 @@ import {
   MapPin,
 } from 'lucide-react';
 
-export default function AccountPage() {
+function AccountPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, token, loading, logout } = useAuth();
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'complaints'>('profile');
+
+  const tabParam = searchParams.get('tab');
+
+  useEffect(() => {
+    if (tabParam === 'orders' || tabParam === 'complaints' || tabParam === 'profile') {
+      setActiveTab(tabParam as any);
+    }
+  }, [tabParam]);
 
   // Orders State
   const [orders, setOrders] = useState<Order[]>([]);
@@ -273,8 +282,10 @@ export default function AccountPage() {
     new: 'bg-blue-50 text-blue-700 border-blue-100',
     confirmed: 'bg-indigo-50 text-indigo-700 border-indigo-100',
     processing: 'bg-amber-50 text-amber-700 border-amber-100',
+    packed: 'bg-teal-50 text-teal-700 border-teal-100',
     shipped: 'bg-orange-50 text-orange-700 border-orange-100',
     dispatched: 'bg-purple-50 text-purple-700 border-purple-100',
+    out_for_delivery: 'bg-purple-50 text-purple-700 border-purple-100',
     delivered: 'bg-emerald-50 text-emerald-700 border-emerald-100',
     cancelled: 'bg-rose-50 text-rose-700 border-rose-100',
   };
@@ -619,23 +630,148 @@ export default function AccountPage() {
 
                         {/* Order Item Details Expanded */}
                         {isExpanded && (
-                          <div className="px-4 pb-4 border-t border-gray-50 pt-3 space-y-4 bg-gray-50/30">
+                          <div className="px-4 pb-4 border-t border-gray-50 pt-3 space-y-5 bg-gray-50/30">
+                            {/* Visual Tracking Progress Timeline */}
+                            <div className="bg-white border border-gray-100 rounded-[4px] p-4 space-y-3">
+                              <h5 className="font-sans font-semibold text-[10px] text-gray-405 uppercase tracking-widest">
+                                Shipment Tracking Timeline
+                              </h5>
+                              {order.status === 'cancelled' ? (
+                                <div className="text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-100 px-3 py-2 rounded-[3px] max-w-max select-none">
+                                  ✕ This order has been cancelled.
+                                </div>
+                              ) : (
+                                <>
+                                  {/* Desktop Progress Bar (Horizontal) */}
+                                  <div className="hidden md:flex items-center justify-between w-full pt-4 pb-6 px-1 select-none">
+                                    {[
+                                      { key: 'pending', label: 'Pending', icon: '⏳' },
+                                      { key: 'confirmed', label: 'Confirmed', icon: '✅' },
+                                      { key: 'processing', label: 'Processing', icon: '⚙️' },
+                                      { key: 'packed', label: 'Packed', icon: '📦' },
+                                      { key: 'shipped', label: 'Shipped', icon: '🚚' },
+                                      { key: 'out_for_delivery', label: 'Out for Delivery', icon: '🛵' },
+                                      { key: 'delivered', label: 'Delivered', icon: '🎁' }
+                                    ].map((step, idx, arr) => {
+                                      const stepIndex = idx;
+                                      const currentStatusIndex = arr.findIndex(s => s.key === order.status);
+                                      const isCompleted = stepIndex < currentStatusIndex;
+                                      const isActive = stepIndex === currentStatusIndex;
+
+                                      return (
+                                        <div key={step.key} className="flex-1 flex items-center relative">
+                                          {idx > 0 && (
+                                            <div className={`absolute left-0 right-1/2 top-4 -translate-y-1/2 h-[2px] -translate-x-1/2 w-full z-0 ${
+                                              isCompleted || isActive ? 'bg-deep-maroon' : 'bg-gray-200'
+                                            }`} />
+                                          )}
+                                          <div className="flex flex-col items-center mx-auto z-10 relative">
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-all ${
+                                              isCompleted 
+                                                ? 'bg-deep-maroon text-white border-deep-maroon shadow-xs' 
+                                                : isActive 
+                                                ? 'bg-antique-gold text-white border-antique-gold animate-pulse shadow-sm' 
+                                                : 'bg-white text-gray-400 border-gray-200'
+                                            }`}>
+                                              {isCompleted ? '✓' : step.icon}
+                                            </div>
+                                            <span className={`text-[10px] font-sans font-semibold mt-2 absolute top-8 whitespace-nowrap ${
+                                              isActive ? 'text-antique-gold font-bold scale-105' : isCompleted ? 'text-deep-maroon' : 'text-gray-400'
+                                            }`}>
+                                              {step.label}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+
+                                  {/* Mobile Progress Bar (Vertical) */}
+                                  <div className="flex md:hidden flex-col gap-4 py-2 pl-3 select-none">
+                                    {[
+                                      { key: 'pending', label: 'Pending', icon: '⏳' },
+                                      { key: 'confirmed', label: 'Confirmed', icon: '✅' },
+                                      { key: 'processing', label: 'Processing', icon: '⚙️' },
+                                      { key: 'packed', label: 'Packed', icon: '📦' },
+                                      { key: 'shipped', label: 'Shipped', icon: '🚚' },
+                                      { key: 'out_for_delivery', label: 'Out for Delivery', icon: '🛵' },
+                                      { key: 'delivered', label: 'Delivered', icon: '🎁' }
+                                    ].map((step, idx, arr) => {
+                                      const stepIndex = idx;
+                                      const currentStatusIndex = arr.findIndex(s => s.key === order.status);
+                                      const isCompleted = stepIndex < currentStatusIndex;
+                                      const isActive = stepIndex === currentStatusIndex;
+                                      const showLine = idx < arr.length - 1;
+
+                                      return (
+                                        <div key={step.key} className="flex items-start gap-4 relative">
+                                          {showLine && (
+                                            <div className={`absolute left-4 top-8 bottom-0 w-[2px] -translate-x-1/2 ${
+                                              isCompleted ? 'bg-deep-maroon' : 'bg-gray-200'
+                                            }`} />
+                                          )}
+                                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold z-10 border ${
+                                            isCompleted 
+                                              ? 'bg-deep-maroon text-white border-deep-maroon shadow-xs' 
+                                              : isActive 
+                                              ? 'bg-antique-gold text-white border-antique-gold animate-pulse shadow-sm' 
+                                              : 'bg-white text-gray-400 border-gray-200'
+                                          }`}>
+                                            {isCompleted ? '✓' : step.icon}
+                                          </div>
+                                          <div className="flex flex-col pt-1">
+                                            <span className={`text-xs font-sans font-bold tracking-wide uppercase ${
+                                              isActive ? 'text-antique-gold' : isCompleted ? 'text-deep-maroon' : 'text-gray-400'
+                                            }`}>
+                                              {step.label}
+                                            </span>
+                                            {isActive && (
+                                              <span className="text-[9px] text-gray-400 tracking-wide mt-0.5">
+                                                Your shipment is currently in this stage.
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </>
+                              )}
+                            </div>
+
                             {/* Items list */}
                             <div className="space-y-2">
                               <h5 className="font-sans font-semibold text-[10px] text-gray-400 uppercase tracking-widest mb-2">
                                 Items Ordered
                               </h5>
-                              <div className="divide-y divide-gray-100">
+                              <div className="divide-y divide-gray-100 bg-white border border-gray-100 rounded-[4px] px-3">
                                 {order.items.map((item, index) => (
                                   <div
                                     key={index}
-                                    className="py-2 flex items-center justify-between text-xs font-sans"
+                                    className="py-2.5 flex items-center gap-3 text-xs font-sans"
                                   >
+                                    {/* Thumbnail Photo */}
+                                    <div className="relative w-11 h-11 bg-white border border-gray-150 rounded overflow-hidden shrink-0">
+                                      {item.photo ? (
+                                        <img 
+                                          src={item.photo} 
+                                          alt={item.name} 
+                                          className="w-full h-full object-cover" 
+                                        />
+                                      ) : (
+                                        <div className="w-full h-full bg-gray-100 flex items-center justify-center text-[10px] text-gray-400 font-serif">
+                                          KH
+                                        </div>
+                                      )}
+                                    </div>
+                                    
                                     <div className="min-w-0 flex-1">
                                       <p className="font-semibold text-ink truncate">{item.name}</p>
-                                      <p className="text-gray-405">Qty: {item.quantity}</p>
+                                      <p className="text-gray-405 font-medium text-[10px]">
+                                        Qty: {item.quantity} × {formatPrice(item.price)}
+                                      </p>
                                     </div>
-                                    <span className="font-mono font-medium text-ink shrink-0">
+                                    <span className="font-mono font-semibold text-ink shrink-0">
                                       {formatPrice(item.price * item.quantity)}
                                     </span>
                                   </div>
@@ -646,47 +782,58 @@ export default function AccountPage() {
                             <hr className="border-gray-150" />
 
                             {/* Details layout */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-sans text-gray-600">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-sans text-gray-600 bg-white border border-gray-100 rounded-[4px] p-4">
                               <div className="space-y-1">
-                                <h5 className="font-semibold text-ink uppercase tracking-wider text-[10px]">
-                                  Shipping Coordinates
+                                <h5 className="font-semibold text-ink uppercase tracking-wider text-[10px] mb-1">
+                                  Shipping Coordinates & contact
                                 </h5>
-                                <p className="text-gray-505">{order.customer_name}</p>
-                                <p className="text-gray-505">Ph: {order.customer_phone}</p>
-                                <p className="text-gray-505">
+                                <p className="text-gray-550 font-medium">{order.customer_name}</p>
+                                <p className="text-gray-550 font-mono text-[11px]">Primary Contact: +91 {order.customer_phone}</p>
+                                {order.customer_alt_phone && (
+                                  <p className="text-gray-550 font-mono text-[11px]">Alt Contact: +91 {order.customer_alt_phone}</p>
+                                )}
+                                <p className="text-gray-555 pt-1">
                                   {order.address_line1}
                                   {order.address_line2 ? `, ${order.address_line2}` : ''}
                                 </p>
-                                <p className="text-gray-505">
+                                <p className="text-gray-550">
                                   {order.city}, {order.state} — {order.pincode}
                                 </p>
                               </div>
 
-                              <div className="space-y-1 text-right">
-                                <h5 className="font-semibold text-ink uppercase tracking-wider text-[10px] text-left sm:text-right">
-                                  Payment summary
-                                </h5>
-                                <div className="space-y-0.5">
-                                  <div className="flex justify-between sm:justify-end sm:gap-6">
-                                    <span>Subtotal</span>
-                                    <span className="font-mono text-ink">{formatPrice(order.subtotal)}</span>
-                                  </div>
-                                  {order.offer_applied && (
-                                    <div className="flex justify-between sm:justify-end sm:gap-6 text-[#358f5c] font-medium">
-                                      <span>Offer Applied</span>
-                                      <span className="font-mono">-{formatPrice(order.offer_applied.discount)}</span>
+                              <div className="space-y-1 text-right flex flex-col justify-between">
+                                <div>
+                                  <h5 className="font-semibold text-ink uppercase tracking-wider text-[10px] text-left sm:text-right mb-1">
+                                    Payment summary
+                                  </h5>
+                                  <div className="space-y-0.5">
+                                    <div className="flex justify-between sm:justify-end sm:gap-6">
+                                      <span>Subtotal</span>
+                                      <span className="font-mono text-ink">{formatPrice(order.subtotal)}</span>
                                     </div>
-                                  )}
-                                  <div className="flex justify-between sm:justify-end sm:gap-6">
-                                    <span>Delivery</span>
-                                    <span className="font-mono text-ink">
-                                      {order.delivery_charge === 0 ? 'FREE' : formatPrice(order.delivery_charge)}
-                                    </span>
+                                    {order.offer_applied && (
+                                      <div className="flex justify-between sm:justify-end sm:gap-6 text-[#358f5c] font-medium">
+                                        <span>Discount ({order.offer_applied.title})</span>
+                                        <span className="font-mono">-{formatPrice(order.offer_applied.discount)}</span>
+                                      </div>
+                                    )}
+                                    <div className="flex justify-between sm:justify-end sm:gap-6">
+                                      <span>Delivery Fee</span>
+                                      <span className="font-mono text-ink">
+                                        {order.delivery_charge === 0 ? 'FREE' : formatPrice(order.delivery_charge)}
+                                      </span>
+                                    </div>
+                                    <div className="flex justify-between sm:justify-end sm:gap-6 font-semibold text-ink pt-1 border-t border-gray-150">
+                                      <span>Grand Total</span>
+                                      <span className="font-mono text-deep-maroon">{formatPrice(order.grand_total)}</span>
+                                    </div>
                                   </div>
-                                  <div className="flex justify-between sm:justify-end sm:gap-6 font-semibold text-ink pt-1 border-t border-gray-150">
-                                    <span>Total Paid</span>
-                                    <span className="font-mono text-deep-maroon">{formatPrice(order.grand_total)}</span>
-                                  </div>
+                                </div>
+
+                                <div className="text-left sm:text-right pt-4 sm:pt-0">
+                                  <span className="text-[10px] text-gray-400 font-medium block">
+                                    Estimated Delivery: 3-5 business days from confirmation.
+                                  </span>
                                 </div>
                               </div>
                             </div>
@@ -865,5 +1012,20 @@ export default function AccountPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AccountPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex-1 bg-[#FAF7F2] flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-3 text-antique-gold">
+          <Loader2 className="w-8 h-8 animate-spin animate-ping" />
+          <span className="font-display italic text-lg">Loading account details...</span>
+        </div>
+      </div>
+    }>
+      <AccountPageContent />
+    </Suspense>
   );
 }

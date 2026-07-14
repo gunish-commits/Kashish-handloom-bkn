@@ -285,7 +285,7 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
               </li>
               <li>
                 <span className="font-semibold text-ink">Availability Status:</span>{' '}
-                {stock > 0 ? `In Stock (${stock} pieces)` : 'Out of Stock'}
+                {stock > 0 ? 'In Stock' : 'Out of Stock'}
               </li>
               {sku && (
                 <li>
