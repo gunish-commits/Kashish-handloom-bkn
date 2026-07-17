@@ -277,6 +277,7 @@ function CheckoutContent() {
         subtotal: subtotal,
         deliveryCharge: deliveryCharge,
         grandTotal: orderPayload.grand_total,
+        baseUrl: typeof window !== 'undefined' ? window.location.origin : undefined,
       });
 
       // 3. Mark order as completed to prevent empty-cart redirect

@@ -15,11 +15,15 @@ interface WhatsAppOrderData {
   subtotal: number;
   deliveryCharge: number;
   grandTotal: number;
+  baseUrl?: string;
 }
 
 export function buildWhatsAppMessage(orderData: WhatsAppOrderData): string {
-  // Determine site base URL from environment (fallback to production domain)
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://kashishhandloom.com';
+  // Determine site base URL dynamically (with fallbacks)
+  const baseUrl = orderData.baseUrl || 
+                  (typeof window !== 'undefined' ? window.location.origin : '') ||
+                  process.env.NEXT_PUBLIC_SITE_URL || 
+                  'https://kashishhandloom.com';
   
   // Format items text containing clickable product links
   const itemsText = orderData.items
