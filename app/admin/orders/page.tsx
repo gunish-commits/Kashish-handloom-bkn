@@ -234,8 +234,15 @@ function OrdersPageContent() {
       year: 'numeric'
     }).replace(/\//g, '-');
     
+    // Format customer name to Title Case (e.g. Gunish Jagga)
+    const titleCaseName = order.customer_name
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+
     // Set custom filename title for printing to PDF
-    document.title = `order-${order.customer_name.toLowerCase()} | ${formattedDate}`;
+    document.title = `Order- ${titleCaseName} | ${formattedDate}`;
     
     window.print();
     
