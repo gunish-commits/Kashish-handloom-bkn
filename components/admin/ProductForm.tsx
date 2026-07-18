@@ -102,6 +102,44 @@ export default function ProductForm({ initialData, categories }: ProductFormProp
     }
   }, [name, isEditMode]);
 
+  // SKU Generator helper
+  const generateSKU = (catId: string, categoriesList: any[]) => {
+    const cat = categoriesList.find(c => c.id === catId);
+    let prefix = 'KH'; // Fallback
+    if (cat) {
+      const catName = cat.name.toLowerCase();
+      if (catName.includes('bedsheet')) {
+        prefix = 'BH'; // Bikaner Handloom / BedSheet
+      } else if (catName.includes('curtain')) {
+        prefix = 'CR';
+      } else if (catName.includes('blanket')) {
+        prefix = 'BL';
+      } else if (catName.includes('pillow')) {
+        prefix = 'PC';
+      } else if (catName.includes('comforter')) {
+        prefix = 'CF';
+      } else {
+        prefix = catName.replace(/[^a-z]/g, '').slice(0, 2).toUpperCase() || 'KH';
+      }
+    }
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    return `${prefix}-${randomNum}`;
+  };
+
+  const triggerSkuGen = (catId: string) => {
+    const newSku = generateSKU(catId || categoryId, categories);
+    setSku(newSku);
+  };
+
+  const handleCategoryChange = (val: string) => {
+    setCategoryId(val);
+    // If SKU is empty or starts with fallback prefix 'KH-', auto-generate a category-specific SKU
+    if (!sku || sku.trim() === '' || sku.startsWith('KH-')) {
+      const newSku = generateSKU(val, categories);
+      setSku(newSku);
+    }
+  };
+
   // Image Upload sequential processing queue
   const processFiles = async (fileList: FileList) => {
     if (!token) return;
@@ -438,7 +476,7 @@ export default function ProductForm({ initialData, categories }: ProductFormProp
               <select
                 required
                 value={categoryId}
-                onChange={e => setCategoryId(e.target.value)}
+                onChange={e => handleCategoryChange(e.target.value)}
                 className="w-full h-10 px-3 border border-gray-200 rounded-[4px] focus:outline-none focus:border-deep-maroon bg-white text-ink cursor-pointer"
               >
                 <option value="">Select a Category</option>
@@ -493,15 +531,24 @@ export default function ProductForm({ initialData, categories }: ProductFormProp
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                  SKU Code
-                </label>
+                <div className="flex justify-between items-center">
+                  <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    SKU Code
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => triggerSkuGen(categoryId)}
+                    className="text-[10px] text-deep-maroon hover:text-antique-gold font-bold uppercase tracking-wider focus:outline-none cursor-pointer"
+                  >
+                    🔄 Auto-Generate
+                  </button>
+                </div>
                 <input
                   type="text"
                   value={sku}
                   onChange={e => setSku(e.target.value)}
-                  className="w-full h-10 px-3 border border-gray-200 rounded-[4px] focus:outline-none focus:border-deep-maroon bg-white text-ink"
-                  placeholder="KH-BS-001"
+                  className="w-full h-10 px-3 border border-gray-250 rounded-[4px] focus:outline-none focus:border-deep-maroon bg-white text-ink font-sans"
+                  placeholder="e.g. BH-1002"
                 />
               </div>
             </div>

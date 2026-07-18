@@ -148,19 +148,21 @@ export default function ProductGallery({ photos, productName }: ProductGalleryPr
       {/* Lightbox Fullscreen Modal */}
       {lightboxOpen && (
         <div className="fixed inset-0 z-[10000] flex flex-col justify-center items-center bg-black/95 backdrop-blur-xs page-fade-in">
-          {/* Top Bar inside Lightbox */}
-          <div className="absolute top-0 left-0 right-0 h-16 flex items-center justify-between px-6 bg-gradient-to-b from-black/50 to-transparent">
+          {/* Top Bar info inside Lightbox */}
+          <div className="absolute top-0 left-0 right-0 h-16 flex items-center justify-between px-6 bg-gradient-to-b from-black/50 to-transparent select-none pointer-events-none">
             <span className="font-sans text-xs uppercase tracking-widest text-warm-ivory/70">
               {activeIndex + 1} / {images.length} · {productName}
             </span>
-            <button
-              onClick={() => setLightboxOpen(false)}
-              className="text-warm-ivory hover:text-antique-gold p-2 cursor-pointer transition-colors focus:outline-none"
-              aria-label="Close Lightbox"
-            >
-              <X className="w-6 h-6" />
-            </button>
           </div>
+
+          {/* Prominent floating close button (Top Right) */}
+          <button
+            onClick={() => setLightboxOpen(false)}
+            className="absolute top-4 right-4 z-50 w-10 h-10 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-warm-ivory border border-white/20 hover:text-antique-gold hover:scale-105 transition-all cursor-pointer focus:outline-none"
+            aria-label="Close Lightbox"
+          >
+            <X className="w-5 h-5" />
+          </button>
 
           {/* Lightbox Image View */}
           <div

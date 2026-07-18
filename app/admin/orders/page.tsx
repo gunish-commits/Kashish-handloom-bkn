@@ -444,7 +444,14 @@ For any queries, reply to this message.
 
                       {/* Customer */}
                       <td className="p-4 font-sans font-medium text-ink">
-                        {order.customer_name}
+                        <div>{order.customer_name}</div>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedOrder(order)}
+                          className="text-[10px] text-blue-600 hover:text-blue-800 hover:underline font-semibold block mt-1 cursor-pointer focus:outline-none text-left"
+                        >
+                          View Details
+                        </button>
                       </td>
 
                       {/* Phone (tel link on mobile, copy desktop) */}
