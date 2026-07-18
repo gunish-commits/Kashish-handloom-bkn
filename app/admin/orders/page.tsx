@@ -270,10 +270,10 @@ For any queries, reply to this message.
           body * {
             visibility: hidden;
           }
-          #print-area, #print-area * {
+          #print-receipt-template, #print-receipt-template * {
             visibility: visible;
           }
-          #print-area {
+          #print-receipt-template {
             position: absolute;
             left: 0;
             top: 0;
@@ -603,7 +603,7 @@ For any queries, reply to this message.
       {/* Visual Order Detail Modal (Opens on 👁️ View) */}
       <Modal isOpen={!!selectedOrder} onClose={() => setSelectedOrder(null)} size="xl" hideHeader={true}>
         {selectedOrder && (
-          <div className="space-y-6 text-ink relative font-sans" id="print-area">
+          <div className="space-y-6 text-ink relative font-sans">
             
             {/* Header */}
             <div className="border-b border-gray-150 pb-4 flex justify-between items-start">
@@ -848,6 +848,108 @@ For any queries, reply to this message.
           </div>
         )}
       </Modal>
+
+      {/* Printable Receipt template */}
+      {selectedOrder && (
+        <div id="print-receipt-template" className="hidden print:block text-black font-sans p-8 space-y-6 max-w-3xl mx-auto">
+          {/* Header */}
+          <div className="flex justify-between items-start border-b-2 border-gray-800 pb-4">
+            <div>
+              <h1 className="text-2xl font-bold tracking-wide uppercase font-serif text-black">Kashish Handloom</h1>
+              <p className="text-xs text-gray-600 italic">Premium Bedsheets, Blankets, Curtains & Home Decor</p>
+              <p className="text-[10px] text-gray-500 mt-1">
+                Jinnah Road, Coatagate, Bikaner, Rajasthan (334001)<br />
+                Contact: +91 8209455157 | support@kashishhandloom.com
+              </p>
+            </div>
+            <div className="text-right">
+              <h2 className="text-base font-bold text-gray-800">RETAIL INVOICE</h2>
+              <p className="text-xs font-mono mt-1">Order ID: <strong className="uppercase">{selectedOrder.id}</strong></p>
+              <p className="text-[10px] text-gray-500 mt-0.5">Date: {new Date(selectedOrder.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+            </div>
+          </div>
+
+          {/* Customer & Delivery Info */}
+          <div className="grid grid-cols-2 gap-8 text-xs border-b border-gray-200 pb-4">
+            <div>
+              <h3 className="font-bold text-gray-800 uppercase tracking-wider text-[10px] mb-1">Customer Details</h3>
+              <p className="font-semibold text-black">{selectedOrder.customer_name}</p>
+              <p className="text-gray-500">Phone: +91 {selectedOrder.customer_phone}</p>
+              {selectedOrder.customer_alt_phone && (
+                <p className="text-gray-500">Alt Phone: +91 {selectedOrder.customer_alt_phone}</p>
+              )}
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-800 uppercase tracking-wider text-[10px] mb-1">Delivery Address</h3>
+              <p className="text-gray-600 leading-relaxed">
+                {selectedOrder.address_line1}
+                {selectedOrder.address_line2 ? `, ${selectedOrder.address_line2}` : ''}<br />
+                {selectedOrder.city}, {selectedOrder.state} — {selectedOrder.pincode}
+              </p>
+            </div>
+          </div>
+
+          {/* Items Table */}
+          <div className="space-y-1">
+            <h3 className="font-bold text-gray-800 uppercase tracking-wider text-[10px] mb-1">Items Summary</h3>
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-gray-300 font-bold uppercase tracking-wider text-[9px] text-gray-600 bg-gray-50">
+                  <th className="py-2 px-1">Item Description</th>
+                  <th className="py-2 px-1 text-center">Qty</th>
+                  <th className="py-2 px-1 text-right">Rate</th>
+                  <th className="py-2 px-1 text-right">Total Amount</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 text-black">
+                {selectedOrder.items.map((item, index) => (
+                  <tr key={index}>
+                    <td className="py-2 px-1">
+                      <p className="font-medium text-black">{item.name}</p>
+                    </td>
+                    <td className="py-2 px-1 text-center font-mono">{item.quantity}</td>
+                    <td className="py-2 px-1 text-right font-mono">{formatPrice(item.price)}</td>
+                    <td className="py-2 px-1 text-right font-mono font-semibold">
+                      {formatPrice(item.price * item.quantity)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Bill Totals */}
+          <div className="border-t-2 border-gray-300 pt-4 flex flex-col items-end text-xs space-y-1.5">
+            <div className="w-64 flex justify-between">
+              <span className="text-gray-500">Subtotal:</span>
+              <span className="font-mono">{formatPrice(selectedOrder.subtotal)}</span>
+            </div>
+            {selectedOrder.offer_applied && (
+              <div className="w-64 flex justify-between text-green-700 font-medium">
+                <span>Discount ({selectedOrder.offer_applied.title}):</span>
+                <span className="font-mono">-{formatPrice(selectedOrder.offer_applied.discount)}</span>
+              </div>
+            )}
+            <div className="w-64 flex justify-between">
+              <span className="text-gray-500">Delivery Charges:</span>
+              <span className="font-mono text-black">
+                {selectedOrder.delivery_charge === 0 ? 'FREE' : formatPrice(selectedOrder.delivery_charge)}
+              </span>
+            </div>
+            <div className="w-64 flex justify-between font-bold text-sm pt-1.5 border-t border-gray-300 text-black">
+              <span>Grand Total:</span>
+              <span className="font-mono text-base">{formatPrice(selectedOrder.grand_total)}</span>
+            </div>
+          </div>
+
+          {/* Thank You Note */}
+          <div className="text-center pt-8 border-t border-dashed border-gray-300 mt-8 space-y-1">
+            <p className="text-sm font-semibold text-black">Thank you for your business!</p>
+            <p className="text-[10px] text-gray-500">For any enquiries, contact us on +91 8209455157</p>
+            <p className="text-[9px] text-gray-400 italic">This is a computer-generated document, no signature required.</p>
+          </div>
+        </div>
+      )}
 
       {/* Floating toast messages */}
       {toastMessage && (
