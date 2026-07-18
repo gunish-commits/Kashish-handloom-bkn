@@ -292,32 +292,29 @@ export default function Header() {
                   <div className="absolute right-0 top-8 bg-ink border border-border-dark/65 rounded-[4px] shadow-lg w-40 overflow-hidden z-50 text-xs font-sans">
                     {user ? (
                       <div className="divide-y divide-border-dark/40">
-                        {isAdmin ? (
+                        {isAdmin && (
                           <Link
                             href="/admin/dashboard"
                             onClick={() => setAccountMenuOpen(false)}
-                            className="block px-4 py-2.5 text-warm-ivory hover:bg-surface-dark/85 hover:text-antique-gold transition-colors font-medium"
+                            className="block px-4 py-2.5 text-antique-gold hover:bg-surface-dark/85 transition-colors font-semibold border-b border-border-dark/30"
                           >
-                            Admin Board
+                            👑 Admin Panel
                           </Link>
-                        ) : (
-                          <>
-                            <Link
-                              href="/account"
-                              onClick={() => setAccountMenuOpen(false)}
-                              className="block px-4 py-2.5 text-warm-ivory hover:bg-surface-dark/85 hover:text-antique-gold transition-colors"
-                            >
-                              My Account
-                            </Link>
-                            <Link
-                              href="/account?tab=orders"
-                              onClick={() => setAccountMenuOpen(false)}
-                              className="block px-4 py-2.5 text-warm-ivory hover:bg-surface-dark/85 hover:text-antique-gold transition-colors"
-                            >
-                              My Orders
-                            </Link>
-                          </>
                         )}
+                        <Link
+                          href="/account"
+                          onClick={() => setAccountMenuOpen(false)}
+                          className="block px-4 py-2.5 text-warm-ivory hover:bg-surface-dark/85 hover:text-antique-gold transition-colors"
+                        >
+                          My Account
+                        </Link>
+                        <Link
+                          href="/account?tab=orders"
+                          onClick={() => setAccountMenuOpen(false)}
+                          className="block px-4 py-2.5 text-warm-ivory hover:bg-surface-dark/85 hover:text-antique-gold transition-colors"
+                        >
+                          My Orders
+                        </Link>
                         <button
                           type="button"
                           onClick={handleLogout}

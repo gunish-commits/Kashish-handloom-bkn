@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, X, Maximize2 } from 'lucide-react';
 
@@ -12,6 +13,11 @@ interface ProductGalleryProps {
 export default function ProductGallery({ photos, productName }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Fallback if no photos provided
   const images = photos && photos.length > 0 ? photos : ['/placeholder-product.jpg'];
@@ -146,10 +152,10 @@ export default function ProductGallery({ photos, productName }: ProductGalleryPr
       )}
 
       {/* Lightbox Fullscreen Modal */}
-      {lightboxOpen && (
-        <div className="fixed inset-0 z-[10000] flex flex-col justify-center items-center bg-black/95 backdrop-blur-xs page-fade-in">
+      {mounted && lightboxOpen && createPortal(
+        <div className="fixed inset-0 z-[100000] flex flex-col justify-center items-center bg-black/95 backdrop-blur-xs page-fade-in">
           {/* Top Bar info inside Lightbox */}
-          <div className="absolute top-0 left-0 right-0 h-16 flex items-center justify-between px-6 bg-gradient-to-b from-black/50 to-transparent select-none pointer-events-none">
+          <div className="absolute top-0 left-0 right-0 h-16 flex items-center justify-between px-6 bg-gradient-to-b from-black/50 to-transparent select-none pointer-events-none z-10">
             <span className="font-sans text-xs uppercase tracking-widest text-warm-ivory/70">
               {activeIndex + 1} / {images.length} · {productName}
             </span>
@@ -158,7 +164,7 @@ export default function ProductGallery({ photos, productName }: ProductGalleryPr
           {/* Prominent floating close button (Top Right) */}
           <button
             onClick={() => setLightboxOpen(false)}
-            className="absolute top-4 right-4 z-50 w-10 h-10 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-warm-ivory border border-white/20 hover:text-antique-gold hover:scale-105 transition-all cursor-pointer focus:outline-none"
+            className="absolute top-4 right-4 z-[100010] w-10 h-10 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-warm-ivory border border-white/20 hover:text-antique-gold hover:scale-105 transition-all cursor-pointer focus:outline-none"
             aria-label="Close Lightbox"
           >
             <X className="w-5 h-5" />
@@ -189,7 +195,7 @@ export default function ProductGallery({ photos, productName }: ProductGalleryPr
               <button
                 type="button"
                 onClick={prevImage}
-                className="absolute left-6 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer focus:outline-none"
+                className="absolute left-6 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer focus:outline-none z-10"
                 aria-label="Previous lightbox image"
               >
                 <ChevronLeft className="w-6 h-6" />
@@ -197,14 +203,15 @@ export default function ProductGallery({ photos, productName }: ProductGalleryPr
               <button
                 type="button"
                 onClick={nextImage}
-                className="absolute right-6 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer focus:outline-none"
+                className="absolute right-6 w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer focus:outline-none z-10"
                 aria-label="Next lightbox image"
               >
                 <ChevronRight className="w-6 h-6" />
               </button>
             </>
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
