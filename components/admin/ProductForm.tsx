@@ -122,7 +122,7 @@ export default function ProductForm({ initialData, categories }: ProductFormProp
         prefix = catName.replace(/[^a-z]/g, '').slice(0, 2).toUpperCase() || 'KH';
       }
     }
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    const randomNum = Math.floor(100000 + Math.random() * 900000);
     return `${prefix}-${randomNum}`;
   };
 
