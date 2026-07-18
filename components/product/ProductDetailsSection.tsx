@@ -4,12 +4,33 @@ import React, { useState } from 'react';
 import { Product } from '../../types';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import StockBadge from '../ui/StockBadge';
 import ReturnBadge from '../ui/ReturnBadge';
 import Button from '../ui/Button';
 import { formatPrice } from '../../lib/utils';
 import { Minus, Plus, MessageCircle, Heart } from 'lucide-react';
 import { buildDirectProductEnquiryMessage, getWhatsAppLink } from '../../lib/whatsapp';
+
+interface ColorVariant {
+  color: string;
+  photos: string[];
+}
+
+function parseVariants(description: string | null): { cleanDescription: string; variants: ColorVariant[] } {
+  if (!description) return { cleanDescription: '', variants: [] };
+  const match = description.match(/<!--COLOR_VARIANTS:(.*?)-->/);
+  if (match) {
+    try {
+      const variants = JSON.parse(match[1]);
+      const cleanDescription = description.replace(/<!--COLOR_VARIANTS:.*?-->/g, '').trim();
+      return { cleanDescription, variants };
+    } catch (e) {
+      console.error('Error parsing variants:', e);
+    }
+  }
+  return { cleanDescription: description, variants: [] };
+}
 
 interface ProductDetailsSectionProps {
   product: Product;
@@ -20,8 +41,21 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
 
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<'description' | 'return' | 'details'>('description');
+
+  const { cleanDescription, variants } = parseVariants(description);
+  const activeColor = searchParams.get('color');
+
+  const handleColorSelect = (colorName: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('color', colorName);
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
 
   const handleDecrease = () => {
     if (quantity > 1) setQuantity(prev => prev - 1);
@@ -32,13 +66,21 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
   };
 
   const handleAddToCart = () => {
+    const selectedColor = activeColor || (variants.length > 0 ? variants[0].color : null);
+    const finalItemName = selectedColor ? `${name} (${selectedColor})` : name;
+
+    const selectedVariant = variants.find(v => v.color === selectedColor);
+    const finalPhoto = (selectedVariant && selectedVariant.photos.length > 0)
+      ? selectedVariant.photos[0]
+      : (product.photos?.[0] || '/placeholder-product.jpg');
+
     addToCart({
       product_id: id,
       slug: product.slug,
       category_id: product.category_id || '',
       price: sale_price ?? price,
-      name,
-      photo: product.photos?.[0] || '/placeholder-product.jpg',
+      name: finalItemName,
+      photo: finalPhoto,
       stock,
       return_policy,
       quantity,
@@ -47,9 +89,12 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
 
   // Build deep link for ordering this single product directly on WhatsApp
   const handleWhatsAppDirectOrder = () => {
+    const selectedColor = activeColor || (variants.length > 0 ? variants[0].color : null);
+    const finalItemName = selectedColor ? `${name} (${selectedColor})` : name;
+
     const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
     const message = buildDirectProductEnquiryMessage(
-      name,
+      finalItemName,
       sku,
       sale_price ?? price,
       currentUrl
@@ -108,17 +153,43 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
       {(fabric || size) && (
         <div className="bg-[#EDE4D4]/15 border border-[#dfd4be]/20 rounded-[4px] p-3.5 space-y-2 text-xs md:text-sm text-gray-600 font-sans">
           {fabric && (
-            <div className="flex justify-between">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-0.5">
               <span className="font-medium text-ink">Fabric/Material:</span>
-              <span className="text-gray-500">{fabric}</span>
+              <span className="text-gray-550 sm:col-span-2">{fabric}</span>
             </div>
           )}
           {size && (
-            <div className="flex justify-between">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-0.5">
               <span className="font-medium text-ink">Size/Dimensions:</span>
-              <span className="text-gray-500">{size}</span>
+              <span className="text-gray-550 sm:col-span-2">{size}</span>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Color Selection row */}
+      {variants.length > 0 && (
+        <div className="space-y-2.5 pt-1">
+          <span className="font-sans text-xs text-gray-500 font-medium">Select Color/Variant:</span>
+          <div className="flex flex-wrap gap-2">
+            {variants.map((v, idx) => {
+              const isSelected = activeColor === v.color || (!activeColor && idx === 0);
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleColorSelect(v.color)}
+                  className={`px-3 py-1.5 rounded-[4px] border text-xs font-medium font-sans uppercase tracking-wider transition-all cursor-pointer ${
+                    isSelected
+                      ? 'border-deep-maroon bg-deep-maroon text-white font-semibold shadow-sm'
+                      : 'border-gray-250 bg-white text-gray-600 hover:border-gray-400'
+                  }`}
+                >
+                  {v.color}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -257,7 +328,7 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
         {/* Tab panels details */}
         <div className="py-5 font-sans text-xs md:text-sm text-gray-600 leading-relaxed">
           {activeTab === 'description' && (
-            <p className="whitespace-pre-line leading-relaxed">{description || 'No description provided.'}</p>
+            <p className="whitespace-pre-line leading-relaxed">{cleanDescription || 'No description provided.'}</p>
           )}
 
           {activeTab === 'return' && (

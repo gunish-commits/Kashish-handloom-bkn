@@ -525,3 +525,9 @@ input[type="search"]::-webkit-search-results-decoration {
   -webkit-appearance: none;
   display: none;
 }
+
+/* Typography override to force standard lining numerals (even numbers) for cormorant display font */
+.font-display, h1.font-display, h2.font-display, h3.font-display, h4.font-display {
+  font-variant-numeric: lining-nums !important;
+  font-feature-settings: "lnum" 1 !important;
+}

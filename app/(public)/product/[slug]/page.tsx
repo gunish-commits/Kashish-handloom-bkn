@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
   const { data: product } = await supabase
     .from('products')
     .select('name, description')
-    .eq('slug', slug)
+    .ilike('slug', slug)
     .maybeSingle();
 
   if (!product) {
@@ -46,7 +46,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   const { data: product, error } = await supabase
     .from('products')
     .select('*, categories(id, name, slug)')
-    .eq('slug', slug)
+    .ilike('slug', slug)
     .eq('active', true)
     .maybeSingle();
 
@@ -92,7 +92,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start bg-white p-4 md:p-8 border border-gray-100 rounded-[4px] shadow-[0_2px_8px_rgba(15,10,5,0.03)]">
           {/* Gallery component (Left 55%) */}
           <div className="lg:col-span-7 w-full">
-            <ProductGallery photos={product.photos} productName={product.name} />
+            <ProductGallery photos={product.photos} productName={product.name} description={product.description} />
           </div>
 
           {/* Details component (Right 45%) */}

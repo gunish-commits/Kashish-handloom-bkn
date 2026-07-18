@@ -3,17 +3,21 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight, X, Maximize2 } from 'lucide-react';
 
 interface ProductGalleryProps {
   photos: string[];
   productName: string;
+  description?: string | null;
 }
 
-export default function ProductGallery({ photos, productName }: ProductGalleryProps) {
+export default function ProductGallery({ photos, productName, description }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const searchParams = useSearchParams();
+  const colorParam = searchParams.get('color');
 
   useEffect(() => {
     setMounted(true);
@@ -21,6 +25,28 @@ export default function ProductGallery({ photos, productName }: ProductGalleryPr
 
   // Fallback if no photos provided
   const images = photos && photos.length > 0 ? photos : ['/placeholder-product.jpg'];
+
+  // Auto-focus on variant photos when active color changes
+  useEffect(() => {
+    if (colorParam && description) {
+      const match = description.match(/<!--COLOR_VARIANTS:(.*?)-->/);
+      if (match) {
+        try {
+          const variants = JSON.parse(match[1]);
+          const selectedVariant = variants.find((v: any) => v.color.toLowerCase() === colorParam.toLowerCase());
+          if (selectedVariant && selectedVariant.photos.length > 0) {
+            const photoUrl = selectedVariant.photos[0];
+            const photoIndex = images.indexOf(photoUrl);
+            if (photoIndex !== -1) {
+              setActiveIndex(photoIndex);
+            }
+          }
+        } catch (e) {
+          console.error('Error auto-focusing variant photo:', e);
+        }
+      }
+    }
+  }, [colorParam, description, images]);
 
   // Handle keyboard events in lightbox
   useEffect(() => {
@@ -91,7 +117,7 @@ export default function ProductGallery({ photos, productName }: ProductGalleryPr
           fill
           priority
           sizes="(max-width: 768px) 100vw, 55vw"
-          className="object-cover"
+          className="object-contain"
         />
 
         {/* Hover zoom icon */}

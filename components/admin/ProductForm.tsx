@@ -33,7 +33,10 @@ export default function ProductForm({ initialData, categories }: ProductFormProp
   const [name, setName] = useState(initialData?.name || '');
   const [slug, setSlug] = useState(initialData?.slug || '');
   const [categoryId, setCategoryId] = useState(initialData?.category_id || '');
-  const [description, setDescription] = useState(initialData?.description || '');
+  const [description, setDescription] = useState(() => {
+    if (!initialData?.description) return '';
+    return initialData.description.replace(/<!--COLOR_VARIANTS:.*?-->/g, '').trim();
+  });
   const [price, setPrice] = useState(initialData?.price?.toString() || '');
   const [salePrice, setSalePrice] = useState(initialData?.sale_price?.toString() || '');
   const [stock, setStock] = useState(initialData?.stock?.toString() || '0');
@@ -50,6 +53,47 @@ export default function ProductForm({ initialData, categories }: ProductFormProp
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [photoSizes, setPhotoSizes] = useState<Record<string, string>>({});
   const [isDragActive, setIsDragActive] = useState(false);
+
+  // Color Variants state
+  const [variants, setVariants] = useState<{ color: string; photos: string[] }[]>([]);
+
+  // Parse initial variants on load
+  useEffect(() => {
+    if (initialData?.description) {
+      const match = initialData.description.match(/<!--COLOR_VARIANTS:(.*?)-->/);
+      if (match) {
+        try {
+          const parsed = JSON.parse(match[1]);
+          setVariants(parsed);
+        } catch (e) {
+          console.error('Failed to parse color variants:', e);
+        }
+      }
+    }
+  }, [initialData]);
+
+  const handleAddVariant = () => {
+    setVariants(prev => [...prev, { color: '', photos: [] }]);
+  };
+
+  const handleRemoveVariant = (index: number) => {
+    setVariants(prev => prev.filter((_, idx) => idx !== index));
+  };
+
+  const handleVariantColorChange = (index: number, val: string) => {
+    setVariants(prev => prev.map((v, idx) => idx === index ? { ...v, color: val } : v));
+  };
+
+  const handleToggleVariantPhoto = (variantIndex: number, photoUrl: string) => {
+    setVariants(prev => prev.map((v, idx) => {
+      if (idx !== variantIndex) return v;
+      const isSelected = v.photos.includes(photoUrl);
+      const newPhotos = isSelected
+        ? v.photos.filter(p => p !== photoUrl)
+        : [...v.photos, photoUrl];
+      return { ...v, photos: newPhotos };
+    }));
+  };
 
   // Queue state for active/pending file compressions & uploads
   interface UploadQueueItem {
@@ -375,11 +419,19 @@ export default function ProductForm({ initialData, categories }: ProductFormProp
     setFormError('');
     setIsSubmitting(true);
 
+    // Strip any existing variants tag from the description text
+    const cleanDesc = description.replace(/<!--COLOR_VARIANTS:.*?-->/g, '').trim();
+    
+    // Embed color variants JSON inside HTML comments in the description field
+    const descriptionWithVariants = variants.length > 0
+      ? `${cleanDesc}\n\n<!--COLOR_VARIANTS:${JSON.stringify(variants)}-->`
+      : cleanDesc;
+
     const payload = {
       name: name.trim(),
       slug: slug.trim(),
       category_id: categoryId,
-      description: description.trim(),
+      description: descriptionWithVariants,
       price: parseFloat(price),
       sale_price: salePrice ? parseFloat(salePrice) : null,
       stock: parseInt(stock, 10),
@@ -869,6 +921,97 @@ export default function ProductForm({ initialData, categories }: ProductFormProp
                 );
               })}
 
+            </div>
+          )}
+        </div>
+
+        {/* Color Variants Section */}
+        <div className="space-y-4 pt-6 border-t border-gray-100">
+          <div className="flex justify-between items-center">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Product Color/Style Variants
+              </label>
+              <p className="text-[10px] text-gray-400 mt-0.5">
+                Group photos by color. Customers can select their preferred color variant on the product page.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleAddVariant}
+              className="px-3 py-1.5 bg-[#FAF7F2] hover:bg-[#EDE4D4] text-ink border border-gray-200 text-[10px] uppercase font-bold tracking-widest rounded-[3px] transition-colors focus:outline-none cursor-pointer flex items-center gap-1"
+            >
+              <span>➕ Add Color</span>
+            </button>
+          </div>
+
+          {variants.length > 0 ? (
+            <div className="space-y-4">
+              {variants.map((variant, vIdx) => (
+                <div key={vIdx} className="p-4 border border-gray-150 rounded-[4px] bg-[#FAF7F2]/30 space-y-3">
+                  <div className="flex justify-between items-center gap-4">
+                    <div className="flex-1 max-w-xs space-y-1">
+                      <span className="text-[10px] text-gray-405 font-bold uppercase tracking-wider block">Color Name</span>
+                      <input
+                        type="text"
+                        value={variant.color}
+                        onChange={e => handleVariantColorChange(vIdx, e.target.value)}
+                        placeholder="e.g. Royal Blue, Crimson Red"
+                        className="w-full h-9 px-3 border border-gray-200 rounded-[4px] focus:outline-none focus:border-deep-maroon bg-white text-xs font-medium text-ink"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveVariant(vIdx)}
+                      className="text-[10px] text-stock-red hover:underline font-bold uppercase tracking-wider mt-4 cursor-pointer focus:outline-none"
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  {/* Select Photos from general photos pool */}
+                  {photos.length > 0 ? (
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] text-gray-405 font-bold uppercase tracking-wider block">
+                        Select photos for this color variant:
+                      </span>
+                      <div className="flex flex-wrap gap-2.5">
+                        {photos.map((url, pIdx) => {
+                          const isSelected = variant.photos.includes(url);
+                          return (
+                            <div
+                              key={pIdx}
+                              onClick={() => handleToggleVariantPhoto(vIdx, url)}
+                              className={`relative w-12 h-12 rounded-[3px] overflow-hidden border-2 cursor-pointer transition-all select-none ${
+                                isSelected ? 'border-deep-maroon ring-2 ring-deep-maroon/20' : 'border-gray-250 hover:border-gray-400'
+                              }`}
+                            >
+                              <img
+                                src={url}
+                                alt={`select thumbnail ${pIdx + 1}`}
+                                className="h-full w-full object-cover pointer-events-none"
+                              />
+                              {isSelected && (
+                                <div className="absolute inset-0 bg-deep-maroon/15 flex items-center justify-center">
+                                  <span className="text-white text-[10px] font-bold">✓</span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-[10px] text-gray-400 italic">
+                      Upload product photos above first to link them to this color variant.
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-6 border border-dashed border-gray-200 rounded-[4px] bg-[#FAF7F2]/10 select-none">
+              <p className="text-xs text-gray-400 font-sans italic">No color variants added yet. (Optional)</p>
             </div>
           )}
         </div>
