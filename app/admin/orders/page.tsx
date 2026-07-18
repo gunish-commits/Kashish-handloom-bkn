@@ -176,21 +176,32 @@ function OrdersPageContent() {
   // Export visibility-filtered visible list to CSV
   const handleExportCSV = () => {
     const headers = ['Order ID', 'Date', 'Customer Name', 'Phone', 'Items Count', 'Subtotal', 'Delivery Charge', 'Discount', 'Grand Total', 'Status', 'Address'];
+    
+    // Helper to escape values and wrap them in double quotes to prevent commas from breaking column alignment
+    const escapeCSV = (val: any): string => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val);
+      // Double up any internal quotes and wrap in quotes
+      return `"${str.replace(/"/g, '""')}"`;
+    };
+
     const rows = filteredOrders.map(o => [
-      o.id,
-      new Date(o.created_at).toLocaleString('en-IN'),
-      o.customer_name,
-      o.customer_phone,
-      o.items.length,
-      o.subtotal,
-      o.delivery_charge,
-      o.offer_applied?.discount || 0,
-      o.grand_total,
-      o.status,
-      `"${o.address_line1} ${o.address_line2 || ''}, ${o.city}, ${o.state} - ${o.pincode}"`
+      escapeCSV(o.id),
+      escapeCSV(new Date(o.created_at).toLocaleString('en-IN')),
+      escapeCSV(o.customer_name),
+      escapeCSV(o.customer_phone),
+      escapeCSV(o.items.length),
+      escapeCSV(o.subtotal),
+      escapeCSV(o.delivery_charge),
+      escapeCSV(o.offer_applied?.discount || 0),
+      escapeCSV(o.grand_total),
+      escapeCSV(o.status),
+      escapeCSV(`${o.address_line1}${o.address_line2 ? `, ${o.address_line2}` : ''}, ${o.city}, ${o.state} - ${o.pincode}`)
     ]);
 
-    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    // Prepend UTF-8 BOM (\uFEFF) so Excel opens it with the correct encoding
+    const BOM = '\uFEFF';
+    const csvContent = BOM + [headers.map(escapeCSV).join(','), ...rows.map(r => r.join(','))].join('\r\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
