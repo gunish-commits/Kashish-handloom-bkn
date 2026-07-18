@@ -56,22 +56,32 @@ export async function POST(request: NextRequest) {
 
     const supabaseAdmin = createAdminClient();
 
-    // Check slug unique constraint
-    const { data: existing } = await supabaseAdmin
-      .from('products')
-      .select('id')
-      .eq('slug', slug)
-      .maybeSingle();
-
-    if (existing) {
-      return NextResponse.json({ error: 'A product with this URL slug already exists.' }, { status: 409 });
+    // Generate and validate unique slug (forced to lowercase)
+    let finalSlug = slug.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-');
+    let slugExists = true;
+    let attempts = 0;
+    while (slugExists && attempts < 10) {
+      const { data: existing } = await supabaseAdmin
+        .from('products')
+        .select('id')
+        .eq('slug', finalSlug)
+        .maybeSingle();
+      
+      if (existing) {
+        // Append a 3-digit random number to resolve collisions
+        const rand = Math.floor(100 + Math.random() * 900);
+        finalSlug = `${slug.toLowerCase().trim()}-${rand}`;
+        attempts++;
+      } else {
+        slugExists = false;
+      }
     }
 
     const { data: product, error } = await supabaseAdmin
       .from('products')
       .insert({
         name,
-        slug,
+        slug: finalSlug,
         category_id: category_id || null,
         description,
         price: parseFloat(price),

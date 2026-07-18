@@ -35,17 +35,28 @@ export async function PUT(
 
     const supabaseAdmin = createAdminClient();
 
-    // Check if slug is taken by another product
+    // Generate and validate unique slug (forced to lowercase)
+    let finalSlug = slug;
     if (slug) {
-      const { data: existing } = await supabaseAdmin
-        .from('products')
-        .select('id')
-        .eq('slug', slug)
-        .neq('id', id)
-        .maybeSingle();
+      finalSlug = slug.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-');
+      let slugExists = true;
+      let attempts = 0;
+      while (slugExists && attempts < 10) {
+        const { data: existing } = await supabaseAdmin
+          .from('products')
+          .select('id')
+          .eq('slug', finalSlug)
+          .neq('id', id)
+          .maybeSingle();
 
-      if (existing) {
-        return NextResponse.json({ error: 'A product with this URL slug already exists.' }, { status: 409 });
+        if (existing) {
+          // Append a 3-digit random number to resolve collisions
+          const rand = Math.floor(100 + Math.random() * 900);
+          finalSlug = `${slug.toLowerCase().trim()}-${rand}`;
+          attempts++;
+        } else {
+          slugExists = false;
+        }
       }
     }
 
@@ -53,7 +64,7 @@ export async function PUT(
       .from('products')
       .update({
         name,
-        slug,
+        slug: finalSlug,
         category_id: category_id || null,
         description,
         price: price !== undefined ? parseFloat(price) : undefined,

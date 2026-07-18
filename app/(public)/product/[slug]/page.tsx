@@ -15,7 +15,7 @@ interface ProductDetailPageProps {
 // Generate dynamic metadata for SEO
 export async function generateMetadata({ params }: ProductDetailPageProps): Promise<Metadata> {
   const resolvedParams = await params;
-  const slug = resolvedParams.slug;
+  const slug = resolvedParams.slug.toLowerCase();
 
   const supabase = createServerClient();
   const { data: product } = await supabase
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: ProductDetailPageProps): Prom
 
 export default async function ProductDetailPage({ params }: ProductDetailPageProps) {
   const resolvedParams = await params;
-  const slug = resolvedParams.slug;
+  const slug = resolvedParams.slug.toLowerCase();
 
   const supabase = createServerClient();
   
