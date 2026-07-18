@@ -23,30 +23,29 @@ export default function ProductGallery({ photos, productName, description }: Pro
     setMounted(true);
   }, []);
 
-  // Fallback if no photos provided
-  const images = photos && photos.length > 0 ? photos : ['/placeholder-product.jpg'];
-
-  // Auto-focus on variant photos when active color changes
-  useEffect(() => {
+  // Filter images array based on selected color variant
+  const images: string[] = React.useMemo(() => {
     if (colorParam && description) {
       const match = description.match(/<!--COLOR_VARIANTS:(.*?)-->/);
       if (match) {
         try {
           const variants = JSON.parse(match[1]);
           const selectedVariant = variants.find((v: any) => v.color.toLowerCase() === colorParam.toLowerCase());
-          if (selectedVariant && selectedVariant.photos.length > 0) {
-            const photoUrl = selectedVariant.photos[0];
-            const photoIndex = images.indexOf(photoUrl);
-            if (photoIndex !== -1) {
-              setActiveIndex(photoIndex);
-            }
+          if (selectedVariant && selectedVariant.photos && selectedVariant.photos.length > 0) {
+            return selectedVariant.photos;
           }
         } catch (e) {
-          console.error('Error auto-focusing variant photo:', e);
+          console.error('Error filtering variant photos:', e);
         }
       }
     }
-  }, [colorParam, description, images]);
+    return photos && photos.length > 0 ? photos : ['/placeholder-product.jpg'];
+  }, [photos, colorParam, description]);
+
+  // Reset activeIndex to 0 when the filtered images array changes
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [images]);
 
   // Handle keyboard events in lightbox
   useEffect(() => {
@@ -117,7 +116,7 @@ export default function ProductGallery({ photos, productName, description }: Pro
           fill
           priority
           sizes="(max-width: 768px) 100vw, 55vw"
-          className="object-contain"
+          className="object-cover"
         />
 
         {/* Hover zoom icon */}

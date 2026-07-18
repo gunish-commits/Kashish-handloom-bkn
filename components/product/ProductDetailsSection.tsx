@@ -119,6 +119,35 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
         )}
       </div>
 
+      {/* Color Selection row (Switched above Price) */}
+      {variants.length > 0 && (
+        <div className="space-y-2 pt-1">
+          <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium font-sans">
+            <span>Color:</span>
+            <span className="text-ink font-semibold uppercase">{activeColor || variants[0]?.color}</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {variants.map((v, idx) => {
+              const isSelected = activeColor === v.color || (!activeColor && idx === 0);
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleColorSelect(v.color)}
+                  className={`px-3 py-1.5 rounded-[4px] border text-xs font-medium font-sans uppercase tracking-wider transition-all cursor-pointer ${
+                    isSelected
+                      ? 'border-deep-maroon bg-deep-maroon text-white font-semibold shadow-sm'
+                      : 'border-gray-250 bg-white text-gray-600 hover:border-gray-400'
+                  }`}
+                >
+                  {v.color}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Price section */}
       <div className="py-3 border-y border-gray-100 flex items-center gap-4">
         {sale_price ? (
@@ -164,32 +193,6 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
               <span className="text-gray-550 sm:col-span-2">{size}</span>
             </div>
           )}
-        </div>
-      )}
-
-      {/* Color Selection row */}
-      {variants.length > 0 && (
-        <div className="space-y-2.5 pt-1">
-          <span className="font-sans text-xs text-gray-500 font-medium">Select Color/Variant:</span>
-          <div className="flex flex-wrap gap-2">
-            {variants.map((v, idx) => {
-              const isSelected = activeColor === v.color || (!activeColor && idx === 0);
-              return (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => handleColorSelect(v.color)}
-                  className={`px-3 py-1.5 rounded-[4px] border text-xs font-medium font-sans uppercase tracking-wider transition-all cursor-pointer ${
-                    isSelected
-                      ? 'border-deep-maroon bg-deep-maroon text-white font-semibold shadow-sm'
-                      : 'border-gray-250 bg-white text-gray-600 hover:border-gray-400'
-                  }`}
-                >
-                  {v.color}
-                </button>
-              );
-            })}
-          </div>
         </div>
       )}
 
