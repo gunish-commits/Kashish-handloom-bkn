@@ -857,31 +857,31 @@ For any queries, reply to this message.
             <div>
               <h1 className="text-2xl font-bold tracking-wide uppercase font-serif text-black">Kashish Handloom</h1>
               <p className="text-xs text-gray-600 italic">Premium Bedsheets, Blankets, Curtains & Home Decor</p>
-              <p className="text-[10px] text-gray-500 mt-1">
+              <p className="text-[10px] text-gray-500 mt-1.5 leading-relaxed">
                 Jinnah Road, Coatagate, Bikaner, Rajasthan (334001)<br />
-                Contact: +91 8209455157 | support@kashishhandloom.com
+                Phone: +91 8209455157, +91 7976924013 | Email: kashishhandloombkn@gmail.com
               </p>
             </div>
             <div className="text-right">
-              <h2 className="text-base font-bold text-gray-800">RETAIL INVOICE</h2>
-              <p className="text-xs font-mono mt-1">Order ID: <strong className="uppercase">{selectedOrder.id}</strong></p>
+              <h2 className="text-base font-bold text-gray-855 tracking-wider uppercase">Retail Invoice</h2>
+              <p className="text-xs font-mono mt-1 text-gray-700">Order ID: <strong className="uppercase">{selectedOrder.id}</strong></p>
               <p className="text-[10px] text-gray-500 mt-0.5">Date: {new Date(selectedOrder.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
             </div>
           </div>
 
           {/* Customer & Delivery Info */}
-          <div className="grid grid-cols-2 gap-8 text-xs border-b border-gray-200 pb-4">
+          <div className="grid grid-cols-2 gap-8 text-xs border-b border-gray-200 pb-5">
             <div>
-              <h3 className="font-bold text-gray-800 uppercase tracking-wider text-[10px] mb-1">Customer Details</h3>
-              <p className="font-semibold text-black">{selectedOrder.customer_name}</p>
-              <p className="text-gray-500">Phone: +91 {selectedOrder.customer_phone}</p>
+              <h3 className="font-bold text-gray-800 uppercase tracking-wider text-[10px] mb-1.5">Customer Details</h3>
+              <p className="font-semibold text-black text-sm">{selectedOrder.customer_name}</p>
+              <p className="text-gray-600 mt-1">Phone: +91 {selectedOrder.customer_phone}</p>
               {selectedOrder.customer_alt_phone && (
-                <p className="text-gray-500">Alt Phone: +91 {selectedOrder.customer_alt_phone}</p>
+                <p className="text-gray-650">Alt Phone: +91 {selectedOrder.customer_alt_phone}</p>
               )}
             </div>
             <div>
-              <h3 className="font-bold text-gray-800 uppercase tracking-wider text-[10px] mb-1">Delivery Address</h3>
-              <p className="text-gray-600 leading-relaxed">
+              <h3 className="font-bold text-gray-800 uppercase tracking-wider text-[10px] mb-1.5">Delivery Address</h3>
+              <p className="text-gray-650 leading-relaxed">
                 {selectedOrder.address_line1}
                 {selectedOrder.address_line2 ? `, ${selectedOrder.address_line2}` : ''}<br />
                 {selectedOrder.city}, {selectedOrder.state} — {selectedOrder.pincode}
@@ -891,25 +891,25 @@ For any queries, reply to this message.
 
           {/* Items Table */}
           <div className="space-y-1">
-            <h3 className="font-bold text-gray-800 uppercase tracking-wider text-[10px] mb-1">Items Summary</h3>
+            <h3 className="font-bold text-gray-800 uppercase tracking-wider text-[10px] mb-1.5">Items Summary</h3>
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-gray-300 font-bold uppercase tracking-wider text-[9px] text-gray-600 bg-gray-50">
-                  <th className="py-2 px-1">Item Description</th>
-                  <th className="py-2 px-1 text-center">Qty</th>
-                  <th className="py-2 px-1 text-right">Rate</th>
-                  <th className="py-2 px-1 text-right">Total Amount</th>
+                <tr className="border-b border-gray-300 font-bold uppercase tracking-wider text-[9px] text-gray-650 bg-gray-50/50">
+                  <th className="py-2 px-2">Item Description</th>
+                  <th className="py-2 px-2 text-center w-16">Qty</th>
+                  <th className="py-2 px-2 text-right w-24">Rate</th>
+                  <th className="py-2 px-2 text-right w-28">Total Amount</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 text-black">
                 {selectedOrder.items.map((item, index) => (
                   <tr key={index}>
-                    <td className="py-2 px-1">
+                    <td className="py-2.5 px-2">
                       <p className="font-medium text-black">{item.name}</p>
                     </td>
-                    <td className="py-2 px-1 text-center font-mono">{item.quantity}</td>
-                    <td className="py-2 px-1 text-right font-mono">{formatPrice(item.price)}</td>
-                    <td className="py-2 px-1 text-right font-mono font-semibold">
+                    <td className="py-2.5 px-2 text-center font-mono">{item.quantity}</td>
+                    <td className="py-2.5 px-2 text-right font-mono">{formatPrice(item.price)}</td>
+                    <td className="py-2.5 px-2 text-right font-mono font-semibold">
                       {formatPrice(item.price * item.quantity)}
                     </td>
                   </tr>
@@ -945,8 +945,8 @@ For any queries, reply to this message.
           {/* Thank You Note */}
           <div className="text-center pt-8 border-t border-dashed border-gray-300 mt-8 space-y-1">
             <p className="text-sm font-semibold text-black">Thank you for your business!</p>
-            <p className="text-[10px] text-gray-500">For any enquiries, contact us on +91 8209455157</p>
-            <p className="text-[9px] text-gray-400 italic">This is a computer-generated document, no signature required.</p>
+            <p className="text-[10px] text-gray-500">For any enquiries, contact us on +91 8209455157 / +91 7976924013</p>
+            <p className="text-[9px] text-gray-400 italic font-mono">This is a computer-generated document, no signature required.</p>
           </div>
         </div>
       )}
