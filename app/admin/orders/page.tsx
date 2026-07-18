@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef, Suspense } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { Order, OrderStatus } from '../../../types';
 import { formatPrice } from '../../../lib/utils';
@@ -46,6 +47,11 @@ function OrdersPageContent() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Filter States
   const [searchTerm, setSearchTerm] = useState('');
@@ -208,6 +214,26 @@ function OrdersPageContent() {
     });
   };
 
+  const handlePrintReceipt = (order: Order) => {
+    if (!order) return;
+    const originalTitle = document.title;
+    const formattedDate = new Date(order.created_at).toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).replace(/\//g, '-');
+    
+    // Set custom filename title for printing to PDF
+    document.title = `order-${order.customer_name.toLowerCase()} | ${formattedDate}`;
+    
+    window.print();
+    
+    // Restore original tab title
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000);
+  };
+
   // Build WhatsApp template messaging link
   const getWhatsAppMessageLink = (order: Order) => {
     const cleanPhone = order.customer_phone.replace(/\D/g, '');
@@ -267,19 +293,30 @@ For any queries, reply to this message.
       {/* Printable Style Overrides */}
       <style>{`
         @media print {
-          body * {
-            visibility: hidden;
+          /* Hide everything inside the main body except the receipt template */
+          body > *:not(#print-receipt-template) {
+            display: none !important;
           }
-          #print-receipt-template, #print-receipt-template * {
-            visibility: visible;
-          }
+          
+          /* Force template to fit full page */
           #print-receipt-template {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
+            display: block !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 0px !important;
+            margin: 0px !important;
             background: white !important;
             color: black !important;
+            font-size: 13px !important;
+          }
+
+          /* Ensure images and tables scale properly */
+          #print-receipt-template table {
+            width: 100% !important;
+            border-collapse: collapse !important;
           }
         }
       `}</style>
@@ -829,7 +866,7 @@ For any queries, reply to this message.
                 </a>
                 
                 <button
-                  onClick={() => window.print()}
+                  onClick={() => handlePrintReceipt(selectedOrder)}
                   className="h-10 px-4 bg-white border border-gray-200 hover:border-antique-gold text-ink hover:text-antique-gold text-xs font-bold uppercase tracking-wider rounded-[4px] flex items-center gap-2 cursor-pointer focus:outline-none transition-colors"
                 >
                   <Printer className="w-4 h-4" />
@@ -850,38 +887,38 @@ For any queries, reply to this message.
       </Modal>
 
       {/* Printable Receipt template */}
-      {selectedOrder && (
-        <div id="print-receipt-template" className="hidden print:block text-black font-sans p-8 space-y-6 max-w-3xl mx-auto">
+      {mounted && selectedOrder && createPortal(
+        <div id="print-receipt-template" className="hidden print:block text-black font-sans p-8 space-y-6 w-full mx-auto">
           {/* Header */}
-          <div className="flex justify-between items-start border-b-2 border-gray-800 pb-4">
+          <div className="flex justify-between items-start border-b-2 border-gray-800 pb-4 w-full">
             <div>
               <h1 className="text-2xl font-bold tracking-wide uppercase font-serif text-black">Kashish Handloom</h1>
-              <p className="text-xs text-gray-600 italic">Premium Bedsheets, Blankets, Curtains & Home Decor</p>
+              <p className="text-xs text-gray-650 italic">Premium Bedsheets, Blankets, Curtains & Home Decor</p>
               <p className="text-[10px] text-gray-500 mt-1.5 leading-relaxed">
                 Jinnah Road, Coatagate, Bikaner, Rajasthan (334001)<br />
                 Phone: +91 8209455157, +91 7976924013 | Email: kashishhandloombkn@gmail.com
               </p>
             </div>
             <div className="text-right">
-              <h2 className="text-base font-bold text-gray-855 tracking-wider uppercase">Retail Invoice</h2>
+              <h2 className="text-base font-bold text-gray-800 tracking-wider uppercase">Retail Invoice</h2>
               <p className="text-xs font-mono mt-1 text-gray-700">Order ID: <strong className="uppercase">{selectedOrder.id}</strong></p>
               <p className="text-[10px] text-gray-500 mt-0.5">Date: {new Date(selectedOrder.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
             </div>
           </div>
 
           {/* Customer & Delivery Info */}
-          <div className="grid grid-cols-2 gap-8 text-xs border-b border-gray-200 pb-5">
-            <div>
+          <div className="flex justify-between gap-12 text-xs border-b border-gray-200 pb-5 w-full">
+            <div className="w-1/2 text-left">
               <h3 className="font-bold text-gray-800 uppercase tracking-wider text-[10px] mb-1.5">Customer Details</h3>
               <p className="font-semibold text-black text-sm">{selectedOrder.customer_name}</p>
-              <p className="text-gray-600 mt-1">Phone: +91 {selectedOrder.customer_phone}</p>
+              <p className="text-gray-650 mt-1">Phone: +91 {selectedOrder.customer_phone}</p>
               {selectedOrder.customer_alt_phone && (
                 <p className="text-gray-650">Alt Phone: +91 {selectedOrder.customer_alt_phone}</p>
               )}
             </div>
-            <div>
-              <h3 className="font-bold text-gray-800 uppercase tracking-wider text-[10px] mb-1.5">Delivery Address</h3>
-              <p className="text-gray-650 leading-relaxed">
+            <div className="w-1/2 text-right">
+              <h3 className="font-bold text-gray-800 uppercase tracking-wider text-[10px] mb-1.5 text-right">Delivery Address</h3>
+              <p className="text-gray-650 leading-relaxed text-right">
                 {selectedOrder.address_line1}
                 {selectedOrder.address_line2 ? `, ${selectedOrder.address_line2}` : ''}<br />
                 {selectedOrder.city}, {selectedOrder.state} — {selectedOrder.pincode}
@@ -890,26 +927,26 @@ For any queries, reply to this message.
           </div>
 
           {/* Items Table */}
-          <div className="space-y-1">
+          <div className="space-y-1 w-full">
             <h3 className="font-bold text-gray-800 uppercase tracking-wider text-[10px] mb-1.5">Items Summary</h3>
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="border-b border-gray-300 font-bold uppercase tracking-wider text-[9px] text-gray-650 bg-gray-50/50">
-                  <th className="py-2 px-2">Item Description</th>
-                  <th className="py-2 px-2 text-center w-16">Qty</th>
-                  <th className="py-2 px-2 text-right w-24">Rate</th>
-                  <th className="py-2 px-2 text-right w-28">Total Amount</th>
+                  <th className="py-2.5 px-2 w-[45%]">Item Description</th>
+                  <th className="py-2.5 px-2 text-center w-[15%]">Qty</th>
+                  <th className="py-2.5 px-2 text-right w-[20%]">Rate</th>
+                  <th className="py-2.5 px-2 text-right w-[20%]">Total Amount</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 text-black">
                 {selectedOrder.items.map((item, index) => (
                   <tr key={index}>
-                    <td className="py-2.5 px-2">
+                    <td className="py-2.5 px-2 w-[45%]">
                       <p className="font-medium text-black">{item.name}</p>
                     </td>
-                    <td className="py-2.5 px-2 text-center font-mono">{item.quantity}</td>
-                    <td className="py-2.5 px-2 text-right font-mono">{formatPrice(item.price)}</td>
-                    <td className="py-2.5 px-2 text-right font-mono font-semibold">
+                    <td className="py-2.5 px-2 text-center font-mono w-[15%]">{item.quantity}</td>
+                    <td className="py-2.5 px-2 text-right font-mono w-[20%]">{formatPrice(item.price)}</td>
+                    <td className="py-2.5 px-2 text-right font-mono font-semibold w-[20%]">
                       {formatPrice(item.price * item.quantity)}
                     </td>
                   </tr>
@@ -919,7 +956,7 @@ For any queries, reply to this message.
           </div>
 
           {/* Bill Totals */}
-          <div className="border-t-2 border-gray-300 pt-4 flex flex-col items-end text-xs space-y-1.5">
+          <div className="border-t-2 border-gray-300 pt-4 flex flex-col items-end text-xs space-y-1.5 w-full">
             <div className="w-64 flex justify-between">
               <span className="text-gray-500">Subtotal:</span>
               <span className="font-mono">{formatPrice(selectedOrder.subtotal)}</span>
@@ -943,12 +980,13 @@ For any queries, reply to this message.
           </div>
 
           {/* Thank You Note */}
-          <div className="text-center pt-8 border-t border-dashed border-gray-300 mt-8 space-y-1">
+          <div className="text-center pt-8 border-t border-dashed border-gray-300 mt-8 space-y-1 w-full">
             <p className="text-sm font-semibold text-black">Thank you for your business!</p>
             <p className="text-[10px] text-gray-500">For any enquiries, contact us on +91 8209455157 / +91 7976924013</p>
             <p className="text-[9px] text-gray-400 italic font-mono">This is a computer-generated document, no signature required.</p>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Floating toast messages */}
