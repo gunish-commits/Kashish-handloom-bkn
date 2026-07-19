@@ -23,16 +23,19 @@ export default function ProductGallery({ photos, productName, description }: Pro
     setMounted(true);
   }, []);
 
-  // Filter images array based on selected color variant
+  // Filter images array based on selected color variant (defaults to first variant if none selected)
   const images: string[] = React.useMemo(() => {
-    if (colorParam && description) {
+    if (description) {
       const match = description.match(/<!--COLOR_VARIANTS:(.*?)-->/);
       if (match) {
         try {
           const variants = JSON.parse(match[1]);
-          const selectedVariant = variants.find((v: any) => v.color.toLowerCase() === colorParam.toLowerCase());
-          if (selectedVariant && selectedVariant.photos && selectedVariant.photos.length > 0) {
-            return selectedVariant.photos;
+          if (Array.isArray(variants) && variants.length > 0) {
+            const activeColorName = colorParam || variants[0].color;
+            const selectedVariant = variants.find((v: any) => v.color.toLowerCase() === activeColorName.toLowerCase());
+            if (selectedVariant && selectedVariant.photos && selectedVariant.photos.length > 0) {
+              return selectedVariant.photos;
+            }
           }
         } catch (e) {
           console.error('Error filtering variant photos:', e);
