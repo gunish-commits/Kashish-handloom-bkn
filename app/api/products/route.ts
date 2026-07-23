@@ -251,59 +251,49 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // If search keyword is active, fetch candidates and do fuzzy match
+    // Fetch candidates matching filters
+    const { data: candidates, error } = await query;
+    if (error) throw error;
+
+    let results = candidates || [];
+
+    // 1. If search is active, perform fuzzy matching
     if (search && search.trim() !== '') {
-      const { data: candidates, error: fetchError } = await query;
-      if (fetchError) throw fetchError;
+      results = fuzzySearch(results, search.trim());
+    }
 
-      const trimmedSearch = search.trim();
-      const results = fuzzySearch(candidates || [], trimmedSearch);
-
-      // Paginate fuzzy matched array
-      const total = results.length;
-      const from = (page - 1) * limit;
-      const slicedProducts = results.slice(from, from + limit);
-      const hasMore = from + slicedProducts.length < total;
-
-      return NextResponse.json({
-        products: slicedProducts,
-        total,
-        hasMore,
+    // 2. Apply sorting on the active candidate list based on actual display/sale price
+    if (sort === 'price_asc') {
+      results.sort((a, b) => {
+        const priceA = a.sale_price !== null && a.sale_price !== undefined ? a.sale_price : a.price;
+        const priceB = b.sale_price !== null && b.sale_price !== undefined ? b.sale_price : b.price;
+        return priceA - priceB;
       });
+    } else if (sort === 'price_desc') {
+      results.sort((a, b) => {
+        const priceA = a.sale_price !== null && a.sale_price !== undefined ? a.sale_price : a.price;
+        const priceB = b.sale_price !== null && b.sale_price !== undefined ? b.sale_price : b.price;
+        return priceB - priceA;
+      });
+    } else if (sort === 'featured') {
+      results.sort((a, b) => {
+        if (a.featured !== b.featured) {
+          return a.featured ? -1 : 1;
+        }
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+    } else { // 'newest'
+      results.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     }
 
-    // Otherwise, apply default sorting and pagination on Database
-    switch (sort) {
-      case 'price_asc':
-        query = query.order('price', { ascending: true });
-        break;
-      case 'price_desc':
-        query = query.order('price', { ascending: false });
-        break;
-      case 'featured':
-        query = query.order('featured', { ascending: false }).order('created_at', { ascending: false });
-        break;
-      case 'newest':
-      default:
-        query = query.order('created_at', { ascending: false });
-        break;
-    }
-
+    // 3. Paginate the sorted results
+    const total = results.length;
     const from = (page - 1) * limit;
-    const to = from + limit - 1;
-    query = query.range(from, to);
-
-    const { data: products, error, count } = await query;
-
-    if (error) {
-      throw error;
-    }
-
-    const total = count || 0;
-    const hasMore = from + (products?.length || 0) < total;
+    const slicedProducts = results.slice(from, from + limit);
+    const hasMore = from + slicedProducts.length < total;
 
     return NextResponse.json({
-      products,
+      products: slicedProducts,
       total,
       hasMore,
     });

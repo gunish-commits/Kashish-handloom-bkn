@@ -29,15 +29,18 @@ export default async function OffersPage() {
   const activeOffers = offers || [];
 
   return (
-    <div className="flex-1 bg-[#FAF7F2] pb-20 pt-8 font-sans">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-8 select-none">
+    <div className="flex-1 bg-surface-dark pb-20 pt-8 font-sans text-warm-ivory min-h-screen relative overflow-hidden select-none">
+      {/* Background Decorative Gold Accent lines */}
+      <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none bg-[radial-gradient(#C5A880_1px,transparent_1px)] [background-size:16px_16px]" />
+
+      <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-12 relative z-10">
         
         {/* Page Headings */}
         <div className="text-center space-y-2 max-w-xl mx-auto">
-          <p className="font-sans font-medium text-[10px] md:text-xs text-deep-maroon tracking-[0.2em] uppercase">
+          <p className="font-sans font-medium text-[10px] md:text-xs text-antique-gold tracking-[0.2em] uppercase">
             Exclusive Deals
           </p>
-          <h1 className="font-display font-light text-3xl md:text-5xl italic text-ink">
+          <h1 className="font-display font-light text-3xl md:text-5xl italic text-warm-ivory">
             All Current Offers
           </h1>
           <Divider />
@@ -71,28 +74,28 @@ export default async function OffersPage() {
               return (
                 <div
                   key={offer.id}
-                  className="relative bg-white border border-gray-150 border-t-[3px] border-t-antique-gold p-6 rounded-[2px] flex flex-col justify-between h-[300px] hover:shadow-[0_8px_24px_rgba(15,10,5,0.06)] hover:border-antique-gold/40 transition-all duration-300 group overflow-hidden"
+                  className="relative bg-transparent border border-border-dark border-t-[3px] border-t-antique-gold p-6 rounded-[2px] flex flex-col justify-between h-[300px] hover:border-antique-gold/45 transition-colors duration-300 group overflow-hidden animate-shimmer"
                 >
-                  {/* Sweep Shimmer Sweep Overlay */}
+                  {/* Gold Shimmer Sweep Sweep Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-antique-gold/5 to-transparent -translate-x-full group-hover:animate-[shimmer_2.5s_infinite_linear]" />
 
                   {/* Card Content Header */}
-                  <div className="space-y-3 z-10">
-                    <h3 className="font-display font-semibold text-xl md:text-2xl text-ink group-hover:text-deep-maroon transition-colors leading-tight">
+                  <div className="space-y-3 z-10 text-left">
+                    <h3 className="font-display font-semibold text-xl md:text-2xl text-warm-ivory group-hover:text-antique-gold transition-colors leading-tight">
                       {offer.title}
                     </h3>
-                    <p className="font-sans text-xs text-gray-500 leading-relaxed line-clamp-4">
+                    <p className="font-sans text-xs text-pale-linen/85 leading-relaxed line-clamp-4">
                       {offer.description}
                     </p>
                   </div>
 
                   {/* Bottom metrics and trigger */}
-                  <div className="space-y-4 z-10 pt-4 border-t border-gray-100">
+                  <div className="space-y-4 z-10 pt-4 border-t border-border-dark/60">
                     <div className="flex items-baseline justify-between gap-2">
                       <span className="font-mono font-bold text-2xl text-antique-gold">
                         {rewardText}
                       </span>
-                      <span className="font-sans text-[10px] text-gray-400 uppercase tracking-wider">
+                      <span className="font-sans text-[10px] text-pale-linen/60 uppercase tracking-wider">
                         {validityText}
                       </span>
                     </div>
@@ -110,9 +113,9 @@ export default async function OffersPage() {
             })}
           </div>
         ) : (
-          <div className="text-center py-16 border border-gray-200 rounded-[4px] bg-white max-w-md mx-auto shadow-xs">
+          <div className="text-center py-16 border border-border-dark/50 rounded-[4px] bg-ink/30 max-w-md mx-auto">
             <span className="text-4xl mb-4 block">🏷️</span>
-            <p className="font-sans text-sm text-gray-500">
+            <p className="font-sans text-sm text-pale-linen/70">
               There are no active campaigns running at the moment. Keep an eye on Bikaner selections!
             </p>
           </div>
