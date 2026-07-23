@@ -9,7 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { useWishlist } from '../../context/WishlistContext';
 import BrandName from '../ui/BrandName';
-import { Search, ShoppingCart, Menu, Phone, User, ShieldAlert, Heart } from 'lucide-react';
+import { Search, ShoppingCart, Menu, Phone, User, ShieldAlert, Heart, ArrowLeft } from 'lucide-react';
 import MobileNav from './MobileNav';
 import { StoreSettings, Product } from '../../types';
 import { supabase } from '../../lib/supabase/client';
@@ -31,6 +31,15 @@ export default function Header() {
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [profileName, setProfileName] = useState<string>('');
+  const [isMobileSearching, setIsMobileSearching] = useState(false);
+  const mobileSearchInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-focus mobile search input when opened
+  useEffect(() => {
+    if (isMobileSearching && mobileSearchInputRef.current) {
+      mobileSearchInputRef.current.focus();
+    }
+  }, [isMobileSearching]);
 
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const accountMenuRef = useRef<HTMLDivElement>(null);
@@ -161,7 +170,91 @@ export default function Header() {
           scrolled ? 'h-14 shadow-lg border-b border-border-dark/35' : 'h-18'
         }`}
       >
-        <div className="max-w-7xl mx-auto h-full header-inner">
+        <div className="max-w-7xl mx-auto h-full header-inner relative">
+          {/* Mobile Search Overlay Bar */}
+          {isMobileSearching && (
+            <div className="absolute inset-0 bg-ink px-4 flex items-center gap-3 z-50 animate-fadeIn h-full">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileSearching(false);
+                  setSearchQuery('');
+                  setSearchResults([]);
+                  setShowSearchDropdown(false);
+                }}
+                className="text-warm-ivory hover:text-antique-gold p-1 focus:outline-none cursor-pointer"
+                aria-label="Close search"
+              >
+                <ArrowLeft className="w-5 h-5 text-antique-gold" />
+              </button>
+              <form
+                action=""
+                onSubmit={e => {
+                  e.preventDefault();
+                  handleSearchSubmit();
+                  setIsMobileSearching(false);
+                }}
+                className="flex-1 relative"
+              >
+                <input
+                  ref={mobileSearchInputRef}
+                  type="search"
+                  enterKeyHint="search"
+                  placeholder="Search bedsheets, curtains, blankets..."
+                  value={searchQuery}
+                  onChange={e => handleSearchChange(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      handleSearchSubmit();
+                      setIsMobileSearching(false);
+                    }
+                  }}
+                  className="w-full h-9 pl-9 pr-8 bg-surface-dark border border-border-dark/60 rounded-[4px] text-xs text-warm-ivory placeholder-gray-400 focus:outline-none focus:border-antique-gold focus:ring-0 transition-colors font-sans"
+                />
+                <Search className="w-4 h-4 text-antique-gold absolute left-3 top-1/2 -translate-y-1/2" />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={clearSearch}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-warm-ivory text-sm focus:outline-none cursor-pointer"
+                  >
+                    &times;
+                  </button>
+                )}
+
+                {/* Autocomplete Dropdown */}
+                {showSearchDropdown && searchResults.length > 0 && (
+                  <div className="absolute top-11 left-0 right-0 bg-ink border border-border-dark/65 rounded-[4px] shadow-lg overflow-hidden z-50 text-xs divide-y divide-border-dark/40 max-h-[300px] overflow-y-auto">
+                    {searchResults.map(p => (
+                      <Link
+                        key={p.id}
+                        href={`/product/${p.slug}`}
+                        onClick={() => {
+                          setShowSearchDropdown(false);
+                          setSearchQuery('');
+                          setIsMobileSearching(false);
+                        }}
+                        className="flex items-center gap-2.5 p-2.5 hover:bg-surface-dark/85 transition-colors"
+                      >
+                        <div className="relative w-8 h-8 shrink-0 bg-surface-mid rounded-sm overflow-hidden">
+                          {p.photos && p.photos[0] ? (
+                            <Image src={p.photos[0]} alt={p.name} fill className="object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-gray-300" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0 text-left">
+                          <p className="font-sans font-medium text-warm-ivory truncate">{p.name}</p>
+                          <p className="font-mono text-[10px] text-antique-gold font-medium">₹{p.sale_price || p.price}</p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </form>
+            </div>
+          )}
+
           {/* 1. Brand Component */}
           <Link href="/" className="header-brand select-none">
             <BrandName size="md" theme="dark" showTagline={false} centered={false} />
@@ -389,14 +482,15 @@ export default function Header() {
 
             {/* Mobile Actions (Search, Cart & Hamburger) */}
             <div className="flex md:hidden items-center gap-3">
-              {/* Mobile Search Icon */}
-              <Link
-                href="/shop"
-                className="text-warm-ivory hover:text-antique-gold p-1.5 transition-colors"
+              {/* Mobile Search Icon Button */}
+              <button
+                type="button"
+                onClick={() => setIsMobileSearching(true)}
+                className="text-warm-ivory hover:text-antique-gold p-1.5 transition-colors cursor-pointer focus:outline-none"
                 aria-label="Search catalog"
               >
                 <Search className="w-5 h-5 text-antique-gold" />
-              </Link>
+              </button>
 
               {/* Mobile Cart Icon with Badge */}
               <Link

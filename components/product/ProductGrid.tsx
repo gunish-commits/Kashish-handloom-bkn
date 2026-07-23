@@ -16,6 +16,32 @@ export default function ProductGrid({
   onLoadMore,
   hasMore = false,
 }: ProductGridProps) {
+  const observerRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    if (!hasMore || !onLoadMore || loading) return;
+
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting) {
+          onLoadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: '200px' }
+    );
+
+    const currentTarget = observerRef.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [hasMore, onLoadMore, loading]);
+
   // Initial loading screen skeleton placeholders
   if (loading && products.length === 0) {
     return (
@@ -53,17 +79,13 @@ export default function ProductGrid({
         ))}
       </div>
 
-      {/* Load More Pagination */}
-      {hasMore && onLoadMore && (
-        <div className="flex justify-center pt-4">
-          <button
-            type="button"
-            onClick={onLoadMore}
-            disabled={loading}
-            className="h-11 px-8 bg-[#EDE4D4] hover:bg-[#dfd4be] text-ink font-sans font-medium text-xs tracking-widest uppercase transition-colors duration-200 rounded-[4px] disabled:opacity-50 select-none cursor-pointer focus:outline-none"
-          >
-            {loading ? 'Loading...' : 'Load More Products'}
-          </button>
+      {/* Infinite Scroll Trigger Indicator */}
+      {hasMore && (
+        <div ref={observerRef} className="flex justify-center pt-8 pb-4">
+          <div className="flex items-center gap-2 text-xs text-gray-500 font-sans tracking-wide">
+            <span className="w-2.5 h-2.5 bg-antique-gold rounded-full animate-ping" />
+            <span>Loading more Bikaner collection...</span>
+          </div>
         </div>
       )}
     </div>
