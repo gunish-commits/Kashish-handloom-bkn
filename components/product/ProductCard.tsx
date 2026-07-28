@@ -170,26 +170,21 @@ export default function ProductCard({ product }: ProductCardProps) {
         </Link>
 
         {/* Color variants dots preview */}
-        {variants.length > 0 && (
-          <div className="flex items-center gap-1.5 mb-2 mt-0.5 select-none">
-            <span className="text-[9px] text-gray-400 font-sans font-medium uppercase tracking-wider">
-              Colours:
-            </span>
-            <div className="flex gap-1 items-center">
-              {variants.slice(0, 4).map((v, idx) => (
-                <span
-                  key={idx}
-                  title={v.color}
-                  className="w-3 h-3 rounded-full border border-gray-200 block shadow-2xs shrink-0"
-                  style={{ backgroundColor: getCssColor(v.color) }}
-                />
-              ))}
-              {variants.length > 4 && (
-                <span className="text-[9px] text-gray-500 font-sans font-semibold ml-0.5">
-                  +{variants.length - 4}
-                </span>
-              )}
-            </div>
+        {variants.length > 1 && (
+          <div className="flex gap-1.5 items-center mb-2.5 mt-0.5 select-none">
+            {variants.slice(0, 5).map((v, idx) => (
+              <span
+                key={idx}
+                title={v.color}
+                className="w-2.5 h-2.5 rounded-full border border-gray-250 block shadow-2xs shrink-0"
+                style={{ backgroundColor: getCssColor(v.color) }}
+              />
+            ))}
+            {variants.length > 5 && (
+              <span className="text-[9px] text-gray-500 font-sans font-semibold ml-0.5 leading-none">
+                +{variants.length - 5}
+              </span>
+            )}
           </div>
         )}
 

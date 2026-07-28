@@ -312,11 +312,11 @@ function ShopContent() {
           {/* Desktop Left Sidebar Filters */}
           <ProductFilters categories={categories} />
 
-          {/* Mobile Filter Trigger Button */}
-          <div className="w-full md:hidden sticky top-14 z-20 bg-[#FAF7F2] py-2 border-b border-gray-100 flex justify-center">
+          {/* Mobile Filter Trigger Floating Button */}
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 select-none md:hidden animate-fadeIn">
             <button
               onClick={() => setMobileFiltersOpen(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-ink text-warm-ivory rounded-[4px] text-xs font-sans font-medium uppercase tracking-wider shadow-sm select-none cursor-pointer"
+              className="flex items-center gap-2 px-6 py-3 bg-ink/95 text-warm-ivory rounded-full text-[11px] font-sans font-semibold uppercase tracking-wider shadow-[0_8px_30px_rgba(0,0,0,0.3)] border border-border-dark/20 backdrop-blur-xs cursor-pointer hover:bg-ink active:scale-95 transition-all duration-200"
             >
               <SlidersHorizontal className="w-4 h-4 text-antique-gold" />
               <span>Filters & Sort</span>

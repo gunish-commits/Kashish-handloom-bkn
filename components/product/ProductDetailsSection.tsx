@@ -128,7 +128,7 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
       </div>
 
       {/* Color Selection row (Switched above Price) */}
-      {variants.length > 0 && (
+      {variants.length > 1 && (
         <div className="space-y-2 pt-1">
           <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium font-sans">
             <span>Color:</span>
