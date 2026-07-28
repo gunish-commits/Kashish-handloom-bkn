@@ -33,6 +33,66 @@ function ShopContent() {
   // Pagination page tracker
   const [page, setPage] = useState(1);
 
+  const [isRestored, setIsRestored] = useState(false);
+  const lastFetchedKey = useRef('');
+
+  // 1. Restore shop list and scroll position from session cache on mount
+  useEffect(() => {
+    const savedProductsStr = sessionStorage.getItem('shop_state_products');
+    const savedScrollStr = sessionStorage.getItem('shop_state_scroll');
+
+    if (savedProductsStr) {
+      try {
+        const saved = JSON.parse(savedProductsStr);
+        if (saved.searchParams === window.location.search) {
+          setProducts(saved.products || []);
+          setPage(saved.page || 1);
+          setTotalCount(saved.totalCount || 0);
+          setHasMore(saved.hasMore || false);
+          lastFetchedKey.current = `${window.location.search}-${saved.page}`;
+
+          if (savedScrollStr) {
+            const scrollY = parseInt(savedScrollStr, 10);
+            setTimeout(() => {
+              window.scrollTo({ top: scrollY, behavior: 'instant' });
+            }, 100);
+          }
+          setLoading(false);
+          setIsRestored(true);
+          return;
+        }
+      } catch (e) {
+        console.error('Failed to restore shop state:', e);
+      }
+    }
+    setIsRestored(true);
+  }, []);
+
+  // 2. Continuous cache updates when product state changes
+  useEffect(() => {
+    if (products.length > 0) {
+      sessionStorage.setItem(
+        'shop_state_products',
+        JSON.stringify({
+          products,
+          page,
+          totalCount,
+          hasMore,
+          searchParams: window.location.search,
+        })
+      );
+    }
+  }, [products, page, totalCount, hasMore, searchParams]);
+
+  // 3. Monitor scroll position to save to cache
+  useEffect(() => {
+    const handleScroll = () => {
+      sessionStorage.setItem('shop_state_scroll', window.scrollY.toString());
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // Sync search input from URL on mount/change
   useEffect(() => {
     setSearchInput(searchParams.get('search') || '');
@@ -48,6 +108,15 @@ function ShopContent() {
 
   // Fetch products when searchParams or page changes
   useEffect(() => {
+    if (!isRestored) return;
+
+    const currentKey = `${searchParams.toString()}-${page}`;
+    if (lastFetchedKey.current === currentKey) {
+      setLoading(false);
+      return;
+    }
+    lastFetchedKey.current = currentKey;
+
     setLoading(true);
 
     const query = new URLSearchParams(searchParams.toString());
@@ -74,7 +143,7 @@ function ShopContent() {
         console.error('Error fetching products:', err);
         setLoading(false);
       });
-  }, [searchParams, page]);
+  }, [searchParams, page, isRestored]);
 
   // Reset page whenever filters change
   useEffect(() => {

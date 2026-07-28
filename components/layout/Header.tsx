@@ -256,9 +256,22 @@ export default function Header() {
           )}
 
           {/* 1. Brand Component */}
-          <Link href="/" className="header-brand select-none">
-            <BrandName size="md" theme="dark" showTagline={false} centered={false} />
-          </Link>
+          <div className="flex items-center select-none shrink-0">
+            {pathname.startsWith('/product/') && (
+              <button
+                onClick={() => {
+                  router.push('/shop');
+                }}
+                className="mr-3 text-antique-gold hover:text-warm-ivory transition-colors duration-200 cursor-pointer focus:outline-none flex items-center justify-center shrink-0"
+                aria-label="Back to shop"
+              >
+                <ArrowLeft className="w-5 h-5 text-antique-gold stroke-[2.5]" />
+              </button>
+            )}
+            <Link href="/" className="header-brand">
+              <BrandName size="md" theme="dark" showTagline={false} centered={false} />
+            </Link>
+          </div>
 
           {/* 2. Navigation Links */}
           <nav className="header-nav">

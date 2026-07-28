@@ -65,38 +65,27 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
     <div className="bg-[#FAF7F2] pb-16 pt-6">
       <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-8 animate-fadeIn">
         
-        {/* Back Button & Breadcrumbs Row */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-250/50 select-none">
-          <Link
-            href="/shop"
-            className="inline-flex items-center gap-2 text-xs font-semibold text-gray-600 hover:text-deep-maroon uppercase tracking-wider transition-colors duration-200"
-          >
-            <ArrowLeft className="w-4 h-4 text-antique-gold" />
-            <span>Back to Shop</span>
+        {/* 1. Breadcrumbs */}
+        <div className="flex items-center gap-1.5 text-xs text-gray-500 font-sans tracking-wide">
+          <Link href="/" className="hover:text-deep-maroon transition-colors">
+            Home
           </Link>
-
-          {/* Breadcrumbs */}
-          <div className="flex items-center gap-1.5 text-xs text-gray-500 font-sans tracking-wide">
-            <Link href="/" className="hover:text-deep-maroon transition-colors">
-              Home
-            </Link>
-            <ChevronRight className="w-3.5 h-3.5" />
-            <Link href="/shop" className="hover:text-deep-maroon transition-colors">
-              Shop
-            </Link>
-            {categorySlug && (
-              <>
-                <ChevronRight className="w-3.5 h-3.5" />
-                <Link href={`/shop?category=${categorySlug}`} className="hover:text-deep-maroon transition-colors">
-                  {categoryName}
-                </Link>
-              </>
-            )}
-            <ChevronRight className="w-3.5 h-3.5" />
-            <span className="text-ink font-medium truncate max-w-[150px] sm:max-w-none">
-              {product.name}
-            </span>
-          </div>
+          <ChevronRight className="w-3.5 h-3.5" />
+          <Link href="/shop" className="hover:text-deep-maroon transition-colors">
+            Shop
+          </Link>
+          {categorySlug && (
+            <>
+              <ChevronRight className="w-3.5 h-3.5" />
+              <Link href={`/shop?category=${categorySlug}`} className="hover:text-deep-maroon transition-colors">
+                {categoryName}
+              </Link>
+            </>
+          )}
+          <ChevronRight className="w-3.5 h-3.5" />
+          <span className="text-ink font-medium truncate max-w-[200px] sm:max-w-none">
+            {product.name}
+          </span>
         </div>
 
         {/* 2. Main Product Section (55% gallery / 45% details on desktop, stacked on mobile) */}
