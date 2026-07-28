@@ -259,7 +259,20 @@ export default function Header() {
           <div className="flex items-center select-none shrink-0">
             {pathname.startsWith('/product/') && (
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  const savedProductsStr = sessionStorage.getItem('shop_state_products');
+                  if (savedProductsStr) {
+                    try {
+                      const saved = JSON.parse(savedProductsStr);
+                      if (saved.searchParams) {
+                        router.push(`/shop${saved.searchParams}`);
+                        return;
+                      }
+                    } catch (err) {
+                      console.error('Failed to parse saved searchParams:', err);
+                    }
+                  }
                   router.push('/shop');
                 }}
                 className="mr-3 text-antique-gold hover:text-warm-ivory transition-colors duration-200 cursor-pointer focus:outline-none flex items-center justify-center shrink-0"
