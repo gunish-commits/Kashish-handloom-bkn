@@ -127,6 +127,50 @@ export default function AdminProductsPage() {
         </Button>
       </div>
 
+      {/* Category Stats Dashboard Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 select-none">
+        {/* All Products Card */}
+        <div
+          onClick={() => setSelectedCategory('')}
+          className={`p-3.5 border rounded-[4px] cursor-pointer transition-all flex flex-col justify-between h-20 ${
+            selectedCategory === ''
+              ? 'border-deep-maroon bg-deep-maroon/5 shadow-xs ring-1 ring-deep-maroon/15'
+              : 'border-gray-250 bg-white hover:border-gray-300'
+          }`}
+        >
+          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">All Products</span>
+          <div className="flex items-baseline justify-between mt-1">
+            <span className="text-xl font-bold font-mono text-ink">{products.length}</span>
+            <span className="text-sm">📦</span>
+          </div>
+        </div>
+
+        {/* Categories Cards */}
+        {categories.map(cat => {
+          const count = products.filter(p => p.category_id === cat.id).length;
+          const isSelected = selectedCategory === cat.id;
+          return (
+            <div
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`p-3.5 border rounded-[4px] cursor-pointer transition-all flex flex-col justify-between h-20 ${
+                isSelected
+                  ? 'border-deep-maroon bg-deep-maroon/5 shadow-xs ring-1 ring-deep-maroon/15'
+                  : 'border-gray-250 bg-white hover:border-gray-300'
+              }`}
+            >
+              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block truncate" title={cat.name}>
+                {cat.name}
+              </span>
+              <div className="flex items-baseline justify-between mt-1">
+                <span className="text-xl font-bold font-mono text-ink">{count}</span>
+                <span className="text-sm">{cat.emoji || '🏷️'}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
       {/* Filter and Search Bar Row */}
       <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 border border-gray-200 rounded-[4px] shadow-xs select-none">
         {/* Search */}

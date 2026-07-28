@@ -114,12 +114,13 @@ export default function ProductGallery({ photos, productName, description }: Pro
         onClick={() => setLightboxOpen(true)}
       >
         <Image
+          key={images[activeIndex]}
           src={images[activeIndex]}
           alt={`${productName} - Display Image ${activeIndex + 1}`}
           fill
           priority
           sizes="(max-width: 768px) 100vw, 55vw"
-          className="object-cover"
+          className="object-cover animate-fadeIn"
         />
 
         {/* Hover zoom icon */}

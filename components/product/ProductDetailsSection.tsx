@@ -15,6 +15,8 @@ import { buildDirectProductEnquiryMessage, getWhatsAppLink } from '../../lib/wha
 interface ColorVariant {
   color: string;
   photos: string[];
+  price?: number | null;
+  sale_price?: number | null;
 }
 
 function parseVariants(description: string | null): { cleanDescription: string; variants: ColorVariant[] } {
@@ -51,6 +53,17 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
   const { cleanDescription, variants } = parseVariants(description);
   const activeColor = searchParams.get('color');
 
+  const selectedColor = activeColor || (variants.length > 0 ? variants[0].color : null);
+  const selectedVariant = variants.find(v => v.color.toLowerCase() === (selectedColor || '').toLowerCase());
+
+  const displayPrice = (selectedVariant && selectedVariant.price !== undefined && selectedVariant.price !== null)
+    ? selectedVariant.price
+    : price;
+
+  const displaySalePrice = (selectedVariant && selectedVariant.price !== undefined && selectedVariant.price !== null)
+    ? selectedVariant.sale_price
+    : sale_price;
+
   const handleColorSelect = (colorName: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('color', colorName);
@@ -66,10 +79,7 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
   };
 
   const handleAddToCart = () => {
-    const selectedColor = activeColor || (variants.length > 0 ? variants[0].color : null);
     const finalItemName = selectedColor ? `${name} (${selectedColor})` : name;
-
-    const selectedVariant = variants.find(v => v.color === selectedColor);
     const finalPhoto = (selectedVariant && selectedVariant.photos.length > 0)
       ? selectedVariant.photos[0]
       : (product.photos?.[0] || '/placeholder-product.jpg');
@@ -78,7 +88,7 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
       product_id: id,
       slug: product.slug,
       category_id: product.category_id || '',
-      price: sale_price ?? price,
+      price: displaySalePrice ?? displayPrice,
       name: finalItemName,
       photo: finalPhoto,
       stock,
@@ -89,14 +99,12 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
 
   // Build deep link for ordering this single product directly on WhatsApp
   const handleWhatsAppDirectOrder = () => {
-    const selectedColor = activeColor || (variants.length > 0 ? variants[0].color : null);
     const finalItemName = selectedColor ? `${name} (${selectedColor})` : name;
-
     const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
     const message = buildDirectProductEnquiryMessage(
       finalItemName,
       sku,
-      sale_price ?? price,
+      displaySalePrice ?? displayPrice,
       currentUrl
     );
     const link = getWhatsAppLink('+918209455157', message);
@@ -150,30 +158,32 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
 
       {/* Price section */}
       <div className="py-3 border-y border-gray-100 flex items-center gap-4">
-        {sale_price ? (
+        {displaySalePrice ? (
           <div className="flex items-baseline gap-3">
             <span className="font-mono font-bold text-2xl md:text-3xl text-deep-maroon">
-              {formatPrice(sale_price)}
+              {formatPrice(displaySalePrice)}
             </span>
             <span className="font-mono text-sm md:text-base text-gray-400 line-through">
-              {formatPrice(price)}
+              {formatPrice(displayPrice)}
             </span>
             <span className="bg-antique-gold/15 text-antique-gold border border-antique-gold/20 px-2 py-0.5 rounded-[3px] font-sans text-[10px] uppercase font-bold tracking-wider">
-              SAVE {Math.round(((price - sale_price) / price) * 100)}%
+              SAVE {Math.round(((displayPrice - displaySalePrice) / displayPrice) * 100)}%
             </span>
           </div>
         ) : (
           <span className="font-mono font-semibold text-xl md:text-2xl text-ink">
-            {formatPrice(price)}
+            {formatPrice(displayPrice)}
           </span>
         )}
       </div>
 
-      {/* Stock status indicator */}
-      <div className="flex items-center gap-3">
-        <span className="font-sans text-xs text-gray-500 font-medium">Availability:</span>
-        <StockBadge stock={stock} threshold={low_stock_threshold} className="scale-105" />
-      </div>
+      {/* Stock status indicator - ONLY show if out of stock */}
+      {stock === 0 && (
+        <div className="flex items-center gap-3">
+          <span className="font-sans text-xs text-gray-500 font-medium">Availability:</span>
+          <StockBadge stock={stock} threshold={low_stock_threshold} className="scale-105" />
+        </div>
+      )}
 
       {/* Return policy warning/banner */}
       <ReturnBadge policy={return_policy} large />

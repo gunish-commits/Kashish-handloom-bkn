@@ -55,7 +55,7 @@ export default function ProductForm({ initialData, categories }: ProductFormProp
   const [isDragActive, setIsDragActive] = useState(false);
 
   // Color Variants state
-  const [variants, setVariants] = useState<{ color: string; photos: string[] }[]>([]);
+  const [variants, setVariants] = useState<{ color: string; photos: string[]; price?: number | null; sale_price?: number | null }[]>([]);
 
   // Parse initial variants on load
   useEffect(() => {
@@ -92,6 +92,30 @@ export default function ProductForm({ initialData, categories }: ProductFormProp
         ? v.photos.filter(p => p !== photoUrl)
         : [...v.photos, photoUrl];
       return { ...v, photos: newPhotos };
+    }));
+  };
+
+  const handleVariantPriceTypeChange = (index: number, useDifferentPrice: boolean) => {
+    setVariants(prev => prev.map((v, idx) => {
+      if (idx !== index) return v;
+      if (useDifferentPrice) {
+        return {
+          ...v,
+          price: parseFloat(price) || 0,
+          sale_price: salePrice ? parseFloat(salePrice) : null
+        };
+      } else {
+        const { price: _, sale_price: __, ...rest } = v;
+        return rest;
+      }
+    }));
+  };
+
+  const handleVariantPriceFieldChange = (index: number, field: 'price' | 'sale_price', val: string) => {
+    setVariants(prev => prev.map((v, idx) => {
+      if (idx !== index) return v;
+      const num = val === '' ? null : parseFloat(val);
+      return { ...v, [field]: num };
     }));
   };
 
@@ -1006,6 +1030,62 @@ export default function ProductForm({ initialData, categories }: ProductFormProp
                       Upload product photos above first to link them to this color variant.
                     </p>
                   )}
+
+                  {/* Pricing Option */}
+                  <div className="pt-3 border-t border-gray-150/40 space-y-2 select-none">
+                    <div className="flex items-center gap-4">
+                      <span className="text-[10px] text-gray-405 font-bold uppercase tracking-wider block">Pricing:</span>
+                      <label className="inline-flex items-center gap-1.5 text-xs text-gray-650 cursor-pointer">
+                        <input
+                          type="radio"
+                          name={`priceType-${vIdx}`}
+                          checked={!variant.price}
+                          onChange={() => handleVariantPriceTypeChange(vIdx, false)}
+                          className="accent-deep-maroon cursor-pointer"
+                        />
+                        <span>Same Price</span>
+                      </label>
+                      <label className="inline-flex items-center gap-1.5 text-xs text-gray-650 cursor-pointer">
+                        <input
+                          type="radio"
+                          name={`priceType-${vIdx}`}
+                          checked={!!variant.price}
+                          onChange={() => handleVariantPriceTypeChange(vIdx, true)}
+                          className="accent-deep-maroon cursor-pointer"
+                        />
+                        <span>Different Price</span>
+                      </label>
+                    </div>
+
+                    {variant.price !== undefined && variant.price !== null && (
+                      <div className="grid grid-cols-2 gap-4 max-w-sm pt-1 animate-fadeIn">
+                        <div className="space-y-1">
+                          <span className="text-[10px] text-gray-405 font-bold uppercase tracking-wider block">Variant Price (₹)</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="any"
+                            value={variant.price === 0 ? '' : variant.price}
+                            onChange={e => handleVariantPriceFieldChange(vIdx, 'price', e.target.value)}
+                            placeholder="e.g. 1299"
+                            className="w-full h-9 px-3 border border-gray-200 rounded-[4px] focus:outline-none focus:border-deep-maroon bg-white text-xs font-medium text-ink"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[10px] text-gray-405 font-bold uppercase tracking-wider block">Variant Sale Price (₹ - Optional)</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="any"
+                            value={variant.sale_price === null || variant.sale_price === undefined ? '' : variant.sale_price}
+                            onChange={e => handleVariantPriceFieldChange(vIdx, 'sale_price', e.target.value)}
+                            placeholder="e.g. 999"
+                            className="w-full h-9 px-3 border border-gray-200 rounded-[4px] focus:outline-none focus:border-deep-maroon bg-white text-xs font-medium text-ink"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
