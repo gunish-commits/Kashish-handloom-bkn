@@ -2,7 +2,7 @@ import React from 'react';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, ArrowLeft } from 'lucide-react';
 import { createServerClient } from '../../../../lib/supabase/server';
 import ProductGallery from '../../../../components/product/ProductGallery';
 import ProductDetailsSection from '../../../../components/product/ProductDetailsSection';
@@ -63,29 +63,40 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
 
   return (
     <div className="bg-[#FAF7F2] pb-16 pt-6">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-8">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-8 animate-fadeIn">
         
-        {/* 1. Breadcrumbs */}
-        <div className="flex items-center gap-1.5 text-xs text-gray-500 font-sans tracking-wide">
-          <Link href="/" className="hover:text-deep-maroon transition-colors">
-            Home
+        {/* Back Button & Breadcrumbs Row */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-250/50 select-none">
+          <Link
+            href="/shop"
+            className="inline-flex items-center gap-2 text-xs font-semibold text-gray-600 hover:text-deep-maroon uppercase tracking-wider transition-colors duration-200"
+          >
+            <ArrowLeft className="w-4 h-4 text-antique-gold" />
+            <span>Back to Shop</span>
           </Link>
-          <ChevronRight className="w-3.5 h-3.5" />
-          <Link href="/shop" className="hover:text-deep-maroon transition-colors">
-            Shop
-          </Link>
-          {categorySlug && (
-            <>
-              <ChevronRight className="w-3.5 h-3.5" />
-              <Link href={`/shop?category=${categorySlug}`} className="hover:text-deep-maroon transition-colors">
-                {categoryName}
-              </Link>
-            </>
-          )}
-          <ChevronRight className="w-3.5 h-3.5" />
-          <span className="text-ink font-medium truncate max-w-[200px] sm:max-w-none">
-            {product.name}
-          </span>
+
+          {/* Breadcrumbs */}
+          <div className="flex items-center gap-1.5 text-xs text-gray-500 font-sans tracking-wide">
+            <Link href="/" className="hover:text-deep-maroon transition-colors">
+              Home
+            </Link>
+            <ChevronRight className="w-3.5 h-3.5" />
+            <Link href="/shop" className="hover:text-deep-maroon transition-colors">
+              Shop
+            </Link>
+            {categorySlug && (
+              <>
+                <ChevronRight className="w-3.5 h-3.5" />
+                <Link href={`/shop?category=${categorySlug}`} className="hover:text-deep-maroon transition-colors">
+                  {categoryName}
+                </Link>
+              </>
+            )}
+            <ChevronRight className="w-3.5 h-3.5" />
+            <span className="text-ink font-medium truncate max-w-[150px] sm:max-w-none">
+              {product.name}
+            </span>
+          </div>
         </div>
 
         {/* 2. Main Product Section (55% gallery / 45% details on desktop, stacked on mobile) */}

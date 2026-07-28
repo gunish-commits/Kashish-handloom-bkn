@@ -67,7 +67,7 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
   const handleColorSelect = (colorName: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('color', colorName);
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   const handleDecrease = () => {
