@@ -35,6 +35,7 @@ function ShopContent() {
 
   const [isRestored, setIsRestored] = useState(false);
   const lastFetchedKey = useRef('');
+  const [shouldRestoreScroll, setShouldRestoreScroll] = useState<number | null>(null);
 
   // 1. Restore shop list and scroll position from session cache on mount
   useEffect(() => {
@@ -53,9 +54,7 @@ function ShopContent() {
 
           if (savedScrollStr) {
             const scrollY = parseInt(savedScrollStr, 10);
-            setTimeout(() => {
-              window.scrollTo({ top: scrollY, behavior: 'instant' });
-            }, 100);
+            setShouldRestoreScroll(scrollY);
           }
           setLoading(false);
           setIsRestored(true);
@@ -67,6 +66,21 @@ function ShopContent() {
     }
     setIsRestored(true);
   }, []);
+
+  // 1b. Perform scroll restoration ONLY after products are rendered in the DOM to avoid clamping
+  useEffect(() => {
+    if (products.length > 0 && shouldRestoreScroll !== null) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.scrollTo({
+            top: shouldRestoreScroll,
+            behavior: 'instant'
+          });
+          setShouldRestoreScroll(null);
+        });
+      });
+    }
+  }, [products, shouldRestoreScroll]);
 
   // 2. Continuous cache updates when product state changes
   useEffect(() => {
