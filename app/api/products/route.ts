@@ -107,9 +107,9 @@ function fuzzySearch(products: any[], searchStr: string): any[] {
         } else {
           // Fuzzy match on spelling
           const dist = levenshtein(qWord, pWord);
-          const maxAllowedDist = qWord.length >= 6 ? 2 : 1;
+          const maxAllowedDist = qWord.length >= 7 ? 2 : (qWord.length >= 4 ? 1 : 0);
           if (dist <= maxAllowedDist) {
-            wordScore = 3; // Misspelled word match
+            wordScore = 5; // Misspelled word match
           }
         }
         if (wordScore > bestWordScore) bestWordScore = wordScore;
@@ -124,8 +124,9 @@ function fuzzySearch(products: any[], searchStr: string): any[] {
           wordScore = 5;
         } else {
           const dist = levenshtein(qWord, cWord);
-          if (dist <= 1) {
-            wordScore = 2;
+          const maxAllowedDist = qWord.length >= 7 ? 2 : (qWord.length >= 4 ? 1 : 0);
+          if (dist <= maxAllowedDist) {
+            wordScore = 3;
           }
         }
         const weightedScore = wordScore * 1.2;
@@ -134,9 +135,19 @@ function fuzzySearch(products: any[], searchStr: string): any[] {
 
       // Check fabric words
       fabricWords.forEach((fWord: string) => {
+        let fScore = 0;
         if (fWord === qWord) {
-          bestWordScore = Math.max(bestWordScore, 8);
+          fScore = 8;
+        } else if (fWord.includes(qWord) || qWord.includes(fWord)) {
+          fScore = 5;
+        } else {
+          const dist = levenshtein(qWord, fWord);
+          const maxAllowedDist = qWord.length >= 7 ? 2 : (qWord.length >= 4 ? 1 : 0);
+          if (dist <= maxAllowedDist) {
+            fScore = 4;
+          }
         }
+        if (fScore > bestWordScore) bestWordScore = fScore;
       });
 
       // Check description words
@@ -147,8 +158,12 @@ function fuzzySearch(products: any[], searchStr: string): any[] {
           dScore = 4;
         } else if (dWord.includes(qWord)) {
           dScore = 2;
-        } else if (levenshtein(qWord, dWord) <= 1) {
-          dScore = 1;
+        } else {
+          const dist = levenshtein(qWord, dWord);
+          const maxAllowedDist = qWord.length >= 7 ? 2 : (qWord.length >= 4 ? 1 : 0);
+          if (dist <= maxAllowedDist) {
+            dScore = 1.5;
+          }
         }
         const weightedScore = dScore * 0.5;
         if (weightedScore > bestDescScore) {

@@ -221,6 +221,8 @@ function ShopContent() {
   const handleSearchSubmit = () => {
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     if (liveSearchTimeoutRef.current) clearTimeout(liveSearchTimeoutRef.current);
+    setShowShopSearchDropdown(false);
+    setLivePreviewResults([]);
     
     const params = new URLSearchParams(searchParams.toString());
     if (searchInput.trim() !== '') {
@@ -230,7 +232,6 @@ function ShopContent() {
     }
     params.delete('page');
     router.push(`/shop?${params.toString()}`);
-    setShowShopSearchDropdown(false);
 
     // Auto-dismiss virtual keyboard
     if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
@@ -267,7 +268,19 @@ function ShopContent() {
   const searchQueryParam = searchParams.get('search');
 
   return (
-    <div className="flex-1 bg-[#FAF7F2] pb-16">
+    <div className="flex-1 bg-[#FAF7F2] pb-16 relative">
+      {/* Full-Screen Loading Overlay Blocker */}
+      {loading && products.length === 0 && (
+        <div className="fixed inset-0 bg-[#FAF7F2]/80 backdrop-blur-xs flex flex-col items-center justify-center z-50 select-none animate-fadeIn">
+          <div className="flex flex-col items-center gap-3">
+            <span className="w-10 h-10 border-4 border-antique-gold border-t-transparent rounded-full animate-spin" />
+            <span className="text-[11px] uppercase tracking-widest font-sans font-semibold text-ink animate-pulse">
+              Loading Bikaner Selections...
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* 1. Header with Search Bar */}
       <div className="bg-ink text-warm-ivory py-10 border-b border-border-dark/25">
         <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-6">

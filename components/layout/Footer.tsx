@@ -8,10 +8,17 @@ import Divider from '../ui/Divider';
 import { Phone, Mail, MapPin, Instagram, MessageCircle } from 'lucide-react';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import BrandName from '../ui/BrandName';
+import { usePathname } from 'next/navigation';
 
 export default function Footer() {
+  const pathname = usePathname();
   const [categories, setCategories] = useState<Category[]>([]);
   const settings = useStoreSettings();
+
+  // Hide footer on shop catalog pages to avoid infinite scroll conflicts
+  if (pathname && (pathname === '/shop' || pathname.startsWith('/shop/'))) {
+    return null;
+  }
 
   useEffect(() => {
     fetch('/api/categories')

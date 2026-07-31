@@ -107,7 +107,7 @@ export default function ProductGallery({ photos, productName, description }: Pro
     <div className="space-y-4 select-none">
       {/* Large Display Image */}
       <div
-        className="relative aspect-[4/3] w-full bg-gray-50 border border-gray-100 rounded-[4px] overflow-hidden group cursor-zoom-in"
+        className="relative aspect-[4/5] w-full bg-gray-50 border border-gray-100 rounded-[4px] overflow-hidden group cursor-zoom-in"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}

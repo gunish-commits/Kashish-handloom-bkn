@@ -124,9 +124,9 @@ export default function Header() {
 
   const handleSearchSubmit = () => {
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    setShowSearchDropdown(false);
+    setSearchResults([]);
     if (searchQuery.trim() !== '') {
-      setShowSearchDropdown(false);
-      setSearchResults([]);
       router.push(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
       

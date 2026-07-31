@@ -62,11 +62,11 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   const categorySlug = product.categories?.slug || '';
 
   return (
-    <div className="bg-[#FAF7F2] pb-16 pt-6">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-8 animate-fadeIn">
+    <div className="bg-white md:bg-[#FAF7F2] pb-16 pt-4 md:pt-6">
+      <div className="max-w-7xl mx-auto px-0 sm:px-4 md:px-8 space-y-6 sm:space-y-8">
         
         {/* 1. Breadcrumbs */}
-        <div className="flex items-center gap-1.5 text-xs text-gray-500 font-sans tracking-wide">
+        <div className="flex items-center gap-1.5 text-xs text-gray-500 font-sans tracking-wide px-4 sm:px-0">
           <Link href="/" className="hover:text-deep-maroon transition-colors">
             Home
           </Link>
@@ -89,7 +89,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         </div>
 
         {/* 2. Main Product Section (55% gallery / 45% details on desktop, stacked on mobile) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start bg-white p-4 md:p-8 border border-gray-100 rounded-[4px] shadow-[0_2px_8px_rgba(15,10,5,0.03)]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-start bg-white p-4 sm:p-6 md:p-8 border-0 sm:border border-gray-100 rounded-none sm:rounded-[4px] shadow-none sm:shadow-[0_2px_8px_rgba(15,10,5,0.03)]">
           {/* Gallery component (Left 55%) */}
           <div className="lg:col-span-7 w-full">
             <ProductGallery photos={product.photos} productName={product.name} description={product.description} />
@@ -102,9 +102,11 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
         </div>
 
         {/* 3. Related Products Showcase */}
-        {product.category_id && (
-          <RelatedProducts categoryId={product.category_id} excludeProductId={product.id} />
-        )}
+        <div className="px-4 sm:px-0">
+          {product.category_id && (
+            <RelatedProducts categoryId={product.category_id} excludeProductId={product.id} />
+          )}
+        </div>
       </div>
     </div>
   );
