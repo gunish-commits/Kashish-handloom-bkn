@@ -52,9 +52,10 @@ export default function AdminSidebar() {
       {/* Nav List */}
       <nav className="flex-1 py-6 space-y-1 overflow-y-auto">
         {navItems.map(item => {
-          const isActive =
+          const isActive = pathname ? (
             pathname === item.href ||
-            (item.href !== '/admin/dashboard' && pathname.startsWith(item.href));
+            (item.href !== '/admin/dashboard' && pathname.startsWith(item.href))
+          ) : false;
           const Icon = item.icon;
           return (
             <Link

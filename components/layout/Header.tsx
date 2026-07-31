@@ -257,7 +257,7 @@ export default function Header() {
 
           {/* 1. Brand Component */}
           <div className="flex items-center select-none shrink-0">
-            {pathname.startsWith('/product/') && (
+            {pathname && pathname.startsWith('/product/') && (
               <button
                 onClick={(e) => {
                   e.preventDefault();
@@ -289,7 +289,7 @@ export default function Header() {
           {/* 2. Navigation Links */}
           <nav className="header-nav">
             {navLinks.map(link => {
-              const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
+              const isActive = pathname ? (pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href))) : false;
               return (
                 <Link
                   key={link.name}
