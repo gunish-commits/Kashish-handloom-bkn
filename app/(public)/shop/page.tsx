@@ -268,7 +268,7 @@ function ShopContent() {
   const searchQueryParam = searchParams.get('search');
 
   return (
-    <div className="flex-1 bg-[#FAF7F2] pb-16 relative">
+    <div className="flex-1 bg-[#FAF7F2] pb-16 relative animate-fadeIn">
       {/* Full-Screen Loading Overlay Blocker */}
       {loading && products.length === 0 && (
         <div className="fixed inset-0 bg-[#FAF7F2]/80 backdrop-blur-xs flex flex-col items-center justify-center z-50 select-none animate-fadeIn">

@@ -62,7 +62,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
   const categorySlug = product.categories?.slug || '';
 
   return (
-    <div className="bg-white md:bg-[#FAF7F2] pb-16 pt-4 md:pt-6">
+    <div className="bg-white md:bg-[#FAF7F2] pb-16 pt-4 md:pt-6 animate-fadeIn">
       <div className="max-w-7xl mx-auto px-0 sm:px-4 md:px-8 space-y-6 sm:space-y-8">
         
         {/* 1. Breadcrumbs */}
