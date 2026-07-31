@@ -92,26 +92,48 @@ function ShopContent() {
     }
   }, [products, shouldRestoreScroll]);
 
-  // 2. Continuous cache updates when product state changes
+  // 2. Continuous cache updates when product state changes (compressed to fit sessionStorage quota safely)
   useEffect(() => {
     if (products.length > 0) {
-      sessionStorage.setItem(
-        'shop_state_products',
-        JSON.stringify({
-          products,
-          page,
-          totalCount,
-          hasMore,
-          searchParams: window.location.search,
-        })
-      );
+      try {
+        const minimalProducts = products.map(p => ({
+          id: p.id,
+          name: p.name,
+          slug: p.slug,
+          price: p.price,
+          sale_price: p.sale_price,
+          description: p.description ? (p.description.match(/<!--COLOR_VARIANTS:.*?-->/)?.join('') || null) : null,
+          photos: p.photos ? p.photos.slice(0, 2) : [],
+          stock: p.stock,
+          low_stock_threshold: p.low_stock_threshold,
+          return_policy: p.return_policy,
+          categories: p.categories ? { name: p.categories.name, slug: p.categories.slug } : null
+        }));
+
+        sessionStorage.setItem(
+          'shop_state_products',
+          JSON.stringify({
+            products: minimalProducts,
+            page,
+            totalCount,
+            hasMore,
+            searchParams: window.location.search,
+          })
+        );
+      } catch (err) {
+        console.error('Failed to save products cache to sessionStorage:', err);
+      }
     }
   }, [products, page, totalCount, hasMore, searchParams]);
 
   // 3. Monitor scroll position to save to cache
   useEffect(() => {
     const handleScroll = () => {
-      sessionStorage.setItem('shop_state_scroll', window.scrollY.toString());
+      try {
+        sessionStorage.setItem('shop_state_scroll', window.scrollY.toString());
+      } catch (err) {
+        console.error('Failed to save scroll position to sessionStorage:', err);
+      }
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
