@@ -185,34 +185,13 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
         </div>
       )}
 
-      {/* Return policy warning/banner */}
-      <ReturnBadge policy={return_policy} large />
-
-      {/* Spec details preview */}
-      {(fabric || size) && (
-        <div className="bg-[#EDE4D4]/15 border border-[#dfd4be]/20 rounded-[4px] p-3.5 space-y-2 text-xs md:text-sm text-gray-600 font-sans">
-          {fabric && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-0.5">
-              <span className="font-medium text-ink">Fabric/Material:</span>
-              <span className="text-gray-550 sm:col-span-2">{fabric}</span>
-            </div>
-          )}
-          {size && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-0.5">
-              <span className="font-medium text-ink">Size/Dimensions:</span>
-              <span className="text-gray-550 sm:col-span-2">{size}</span>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Quantity picker & checkout CTAs */}
       {!isOutOfStock && (
         <div className="space-y-4 pt-2">
           {/* Selector quantity row */}
           <div className="flex items-center gap-4">
             <span className="font-sans text-xs text-gray-500 font-medium select-none">Quantity:</span>
-            <div className="flex items-center border border-gray-200 rounded-[4px] bg-white h-10 select-none">
+            <div className="flex items-center border border-gray-250 rounded-[4px] bg-white h-10 select-none">
               <button
                 type="button"
                 onClick={handleDecrease}
@@ -306,6 +285,29 @@ export default function ProductDetailsSection({ product }: ProductDetailsSection
               </>
             )}
           </button>
+        </div>
+      )}
+
+      {/* Return policy warning/banner */}
+      <div className="pt-2">
+        <ReturnBadge policy={return_policy} large />
+      </div>
+
+      {/* Spec details preview */}
+      {(fabric || size) && (
+        <div className="bg-[#EDE4D4]/15 border border-[#dfd4be]/20 rounded-[4px] p-3.5 space-y-2 text-xs md:text-sm text-gray-600 font-sans">
+          {fabric && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-0.5">
+              <span className="font-medium text-ink">Fabric/Material:</span>
+              <span className="text-gray-550 sm:col-span-2">{fabric}</span>
+            </div>
+          )}
+          {size && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 sm:gap-4 py-0.5">
+              <span className="font-medium text-ink">Size/Dimensions:</span>
+              <span className="text-gray-550 sm:col-span-2">{size}</span>
+            </div>
+          )}
         </div>
       )}
 

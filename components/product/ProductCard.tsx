@@ -104,7 +104,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <div className="group bg-card-white rounded-[4px] border border-gray-100 shadow-[0_2px_8px_rgba(15,10,5,0.08)] hover:shadow-[0_8px_24px_rgba(15,10,5,0.15)] hover:-translate-y-[3px] transition-all duration-250 flex flex-col h-full overflow-hidden">
       {/* Link surrounding Image area */}
-      <Link href={`/product/${slug}`} className="relative aspect-[4/3] w-full block overflow-hidden bg-gray-50 shrink-0">
+      <Link href={`/product/${slug}`} className="relative aspect-[4/5] w-full block overflow-hidden bg-gray-50 shrink-0">
         {/* Main Product Image */}
         <Image
           src={mainPhoto}
@@ -156,7 +156,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       </Link>
 
       {/* Card Content Body */}
-      <div className="p-4 flex flex-col flex-1 min-h-[175px]">
+      <div className="p-3 flex flex-col flex-1 min-h-[120px] md:min-h-[130px]">
         {/* Category Label */}
         <p className="font-sans font-medium text-[10px] text-deep-maroon tracking-wider uppercase mb-1">
           {categoryName}
@@ -206,11 +206,6 @@ export default function ProductCard({ product }: ProductCardProps) {
                 {formatPrice(price)}
               </span>
             )}
-          </div>
-
-          {/* Return Policy Info */}
-          <div className="pt-0.5 border-t border-gray-50 flex items-center">
-            <ReturnBadge policy={return_policy} />
           </div>
         </div>
 
