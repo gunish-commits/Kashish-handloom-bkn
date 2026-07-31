@@ -39,10 +39,6 @@ function ShopContent() {
 
   // 1. Restore shop list and scroll position from session cache on mount
   useEffect(() => {
-    if ('scrollRestoration' in history) {
-      history.scrollRestoration = 'manual';
-    }
-
     const savedProductsStr = sessionStorage.getItem('shop_state_products');
     const savedScrollStr = sessionStorage.getItem('shop_state_scroll');
 
@@ -69,12 +65,6 @@ function ShopContent() {
       }
     }
     setIsRestored(true);
-
-    return () => {
-      if ('scrollRestoration' in history) {
-        history.scrollRestoration = 'auto';
-      }
-    };
   }, []);
 
   // 1b. Perform scroll restoration ONLY after products are rendered in the DOM to avoid clamping
