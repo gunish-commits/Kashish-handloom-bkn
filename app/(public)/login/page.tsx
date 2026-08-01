@@ -35,7 +35,7 @@ function LoginContent() {
   const [successMsg, setSuccessMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const redirectUrl = searchParams.get('redirect') || '/account';
+  const redirectUrl = searchParams.get('redirect') || '/';
 
   // Sync active tab from query parameter on mount/change
   useEffect(() => {
@@ -73,7 +73,12 @@ function LoginContent() {
       });
 
       if (error) throw error;
+
+      // Save a flag in session storage to trigger the login success popup
+      sessionStorage.setItem('login_success_alert', 'true');
+      
       router.push(redirectUrl);
+      router.refresh();
     } catch (err: any) {
       console.error('Login Error:', err);
       setAuthError(err.message || 'Invalid email or password.');

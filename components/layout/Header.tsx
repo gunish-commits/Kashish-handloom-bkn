@@ -25,10 +25,26 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showLoginToast, setShowLoginToast] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Monitor login success flags to trigger popup toast
+  useEffect(() => {
+    if (mounted) {
+      const showToast = sessionStorage.getItem('login_success_alert');
+      if (showToast === 'true') {
+        setShowLoginToast(true);
+        sessionStorage.removeItem('login_success_alert');
+        const timer = setTimeout(() => {
+          setShowLoginToast(false);
+        }, 4000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [mounted]);
 
   // Search & Profile States
   const [searchQuery, setSearchQuery] = useState('');
@@ -553,6 +569,14 @@ export default function Header() {
 
       {/* Mobile Drawer Menu */}
       <MobileNav isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
+
+      {/* Success Toast Alert popup */}
+      {showLoginToast && (
+        <div className="fixed bottom-6 right-6 z-55 bg-[#1A110A] border border-antique-gold/30 text-warm-ivory py-3.5 px-5 rounded-[4px] shadow-xl font-sans text-[10px] uppercase tracking-widest flex items-center gap-3 animate-fadeIn">
+          <span className="text-antique-gold text-sm font-bold">✓</span>
+          <span className="font-semibold text-warm-ivory">Successfully Logged In!</span>
+        </div>
+      )}
     </>
   );
 }
