@@ -6,8 +6,10 @@ import { usePathname } from 'next/navigation';
 export default function WhatsAppFloatingButton() {
   const pathname = usePathname();
   const [bounce, setBounce] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     // Trigger bounce once after a delay
     const bounceTimer = setTimeout(() => {
       setBounce(true);
@@ -17,6 +19,8 @@ export default function WhatsAppFloatingButton() {
 
     return () => clearTimeout(bounceTimer);
   }, []);
+
+  if (!mounted) return null;
 
   // Hide the floating button on checkout page to avoid clutter
   if (pathname === '/checkout') return null;

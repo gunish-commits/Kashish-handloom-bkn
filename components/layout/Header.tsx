@@ -24,6 +24,11 @@ export default function Header() {
   
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Search & Profile States
   const [searchQuery, setSearchQuery] = useState('');
@@ -257,7 +262,7 @@ export default function Header() {
 
           {/* 1. Brand Component */}
           <div className="flex items-center select-none shrink-0">
-            {pathname && pathname.startsWith('/product/') && (
+            {mounted && pathname && pathname.startsWith('/product/') && (
               <button
                 onClick={(e) => {
                   e.preventDefault();
@@ -289,7 +294,7 @@ export default function Header() {
           {/* 2. Navigation Links */}
           <nav className="header-nav">
             {navLinks.map(link => {
-              const isActive = pathname ? (pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href))) : false;
+              const isActive = mounted && pathname ? (pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href))) : false;
               return (
                 <Link
                   key={link.name}

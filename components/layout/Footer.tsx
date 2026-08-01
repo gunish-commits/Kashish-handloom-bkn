@@ -12,20 +12,23 @@ import { usePathname } from 'next/navigation';
 
 export default function Footer() {
   const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const settings = useStoreSettings();
 
-  // Hide footer on shop catalog pages to avoid infinite scroll conflicts
-  if (pathname && (pathname === '/shop' || pathname.startsWith('/shop/'))) {
-    return null;
-  }
-
   useEffect(() => {
+    setMounted(true);
     fetch('/api/categories')
       .then(res => (res.ok ? res.json() : []))
       .then(data => setCategories(data.slice(0, 6)))
       .catch(() => {});
   }, []);
+
+  // Hide footer on shop catalog pages to avoid infinite scroll conflicts
+  // Wait until mounted on client to prevent server/client hydration mismatch
+  if (mounted && pathname && (pathname === '/shop' || pathname.startsWith('/shop/'))) {
+    return null;
+  }
 
   const primaryWa = settings?.primary_whatsapp || '+918209455157';
   const cleanWa = primaryWa.replace(/\D/g, '');
