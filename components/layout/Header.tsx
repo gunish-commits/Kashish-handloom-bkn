@@ -48,6 +48,11 @@ export default function Header() {
 
   // Search & Profile States
   const [searchQuery, setSearchQuery] = useState('');
+  const searchQueryRef = useRef(searchQuery);
+  useEffect(() => {
+    searchQueryRef.current = searchQuery;
+  }, [searchQuery]);
+
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -126,14 +131,18 @@ export default function Header() {
   // Live autocomplete search handler
   const handleSearchChange = (val: string) => {
     setSearchQuery(val);
-    if (val.trim().length >= 2) {
+    const trimmedVal = val.trim();
+    if (trimmedVal.length >= 2) {
       if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
       searchTimeoutRef.current = setTimeout(() => {
-        fetch(`/api/products?search=${encodeURIComponent(val.trim())}&limit=5`)
+        fetch(`/api/products?search=${encodeURIComponent(trimmedVal)}&limit=5`)
           .then(res => (res.ok ? res.json() : { products: [] }))
           .then(data => {
-            setSearchResults(data.products || []);
-            setShowSearchDropdown(true);
+            // Only update results if query in input still matches the fetched value
+            if (searchQueryRef.current.trim() === trimmedVal) {
+              setSearchResults(data.products || []);
+              setShowSearchDropdown(true);
+            }
           })
           .catch(() => setSearchResults([]));
       }, 300);
@@ -145,6 +154,8 @@ export default function Header() {
 
   const handleSearchSubmit = () => {
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    // Invalidate any pending autocomplete requests immediately
+    searchQueryRef.current = '';
     setShowSearchDropdown(false);
     setSearchResults([]);
     if (searchQuery.trim() !== '') {

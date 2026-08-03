@@ -26,7 +26,8 @@ function levenshtein(a: string, b: string): number {
 // In-memory fuzzy match, rank, and sorting algorithm
 function fuzzySearch(products: any[], searchStr: string): any[] {
   const queryLower = searchStr.toLowerCase().trim();
-  const queryWords = queryLower.split(/\s+/).filter(Boolean);
+  const cleanToken = (w: string) => w.replace(/[(),.:;?!"'\[\]]/g, '').trim();
+  const queryWords = queryLower.split(/\s+/).map(cleanToken).filter(Boolean);
   const queryNoSpaces = queryLower.replace(/\s+/g, '');
 
   if (queryWords.length === 0) return products;
@@ -38,13 +39,13 @@ function fuzzySearch(products: any[], searchStr: string): any[] {
     products.forEach((p: any) => {
       if (p.categories?.name && p.category_id) {
         const cName = p.categories.name.toLowerCase();
-        const words = cName.split(/\s+/).filter(Boolean);
+        const words = cName.split(/\s+/).map(cleanToken).filter(Boolean);
         const matches = words.some((w: string) => 
           w === qWord || 
           w === qWord + 's' || 
           qWord === w + 's' ||
           (qWord.length >= 4 && (w.startsWith(qWord) || qWord.startsWith(w))) ||
-          levenshtein(qWord, w) <= 1
+          levenshtein(qWord, w) <= (qWord.length >= 7 ? 2 : 1)
         );
         if (matches) {
           categoryMatchIds.add(p.category_id);
@@ -87,10 +88,10 @@ function fuzzySearch(products: any[], searchStr: string): any[] {
     }
 
     // Compute token word match scores
-    const nameWords = nameLower.split(/\s+/).filter(Boolean);
-    const categoryWords = categoryName.split(/\s+/).filter(Boolean);
-    const fabricWords = fabricLower.split(/\s+/).filter(Boolean);
-    const descWords = descLower.split(/\s+/).filter(Boolean).slice(0, 100);
+    const nameWords = nameLower.split(/\s+/).map(cleanToken).filter(Boolean);
+    const categoryWords = categoryName.split(/\s+/).map(cleanToken).filter(Boolean);
+    const fabricWords = fabricLower.split(/\s+/).map(cleanToken).filter(Boolean);
+    const descWords = descLower.split(/\s+/).map(cleanToken).filter(Boolean).slice(0, 150);
 
     queryWords.forEach((qWord: string) => {
       let bestWordScore = 0;
@@ -155,17 +156,17 @@ function fuzzySearch(products: any[], searchStr: string): any[] {
       descWords.forEach((dWord: string) => {
         let dScore = 0;
         if (dWord === qWord) {
+          dScore = 8;
+        } else if (dWord.includes(qWord) || qWord.includes(dWord)) {
           dScore = 4;
-        } else if (dWord.includes(qWord)) {
-          dScore = 2;
         } else {
           const dist = levenshtein(qWord, dWord);
           const maxAllowedDist = qWord.length >= 7 ? 2 : (qWord.length >= 4 ? 1 : 0);
           if (dist <= maxAllowedDist) {
-            dScore = 1.5;
+            dScore = 3;
           }
         }
-        const weightedScore = dScore * 0.5;
+        const weightedScore = dScore * 0.8;
         if (weightedScore > bestDescScore) {
           bestDescScore = weightedScore;
         }
