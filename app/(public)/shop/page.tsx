@@ -219,17 +219,13 @@ function ShopContent() {
   const handleSearchChange = (val: string) => {
     const trimmedVal = val.trim();
     
-    // If the search input is cleared, remove the search filter from the URL immediately
+    // If the search input is cleared, just close the dropdown and clear suggestions.
+    // Do NOT trigger any page routing transitions! Let the user press Enter or click the clear button to finalize it.
     if (trimmedVal === '') {
       if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
       if (liveSearchTimeoutRef.current) clearTimeout(liveSearchTimeoutRef.current);
       setLivePreviewResults([]);
       setShowShopSearchDropdown(false);
-      
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete('search');
-      params.delete('page');
-      router.push(`/shop?${params.toString()}`);
       return;
     }
 
@@ -308,12 +304,12 @@ function ShopContent() {
   return (
     <div className="flex-1 bg-[#FAF7F2] pb-16 relative animate-fadeIn">
       {/* Full-Screen Loading Overlay Blocker */}
-      {loading && products.length === 0 && (
+      {loading && page === 1 && (
         <div className="fixed inset-0 bg-[#FAF7F2]/80 backdrop-blur-xs flex flex-col items-center justify-center z-50 select-none animate-fadeIn">
           <div className="flex flex-col items-center gap-3">
             <span className="w-10 h-10 border-4 border-antique-gold border-t-transparent rounded-full animate-spin" />
             <span className="text-[11px] uppercase tracking-widest font-sans font-semibold text-ink animate-pulse">
-              Loading Bikaner Selections...
+              {searchParams.get('search') ? 'Searching Bikaner collections...' : 'Loading Bikaner Selections...'}
             </span>
           </div>
         </div>
@@ -366,7 +362,15 @@ function ShopContent() {
                 type="button"
                 onClick={() => {
                   setSearchInput('');
-                  handleSearchChange('');
+                  if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+                  if (liveSearchTimeoutRef.current) clearTimeout(liveSearchTimeoutRef.current);
+                  setLivePreviewResults([]);
+                  setShowShopSearchDropdown(false);
+                  
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.delete('search');
+                  params.delete('page');
+                  router.push(`/shop?${params.toString()}`);
                 }}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-warm-ivory text-xl focus:outline-none cursor-pointer"
               >
