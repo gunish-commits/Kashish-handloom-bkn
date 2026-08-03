@@ -27,8 +27,8 @@ export default function OffersSection({ offers }: OffersSectionProps) {
         {activeOffers.length > 0 ? (
           <div className="flex gap-6 overflow-x-auto pb-4 no-scrollbar md:grid md:grid-cols-3 md:gap-6">
             {activeOffers.map(offer => {
-              const filterUrl = offer.category_id
-                ? `/shop?category=${offer.category_id}`
+              const filterUrl = offer.categories?.slug
+                ? `/shop?category=${offer.categories.slug}`
                 : '/shop';
 
               const validityText = offer.valid_until

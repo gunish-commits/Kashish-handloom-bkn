@@ -17,7 +17,7 @@ export default async function OffersPage() {
   // Fetch active campaigns
   const { data: offers, error } = await supabase
     .from('offers')
-    .select('*')
+    .select('*, categories(id, name, slug)')
     .eq('active', true)
     .or(`valid_until.is.null,valid_until.gte.${todayStr}`)
     .order('created_at', { ascending: false });
@@ -50,8 +50,8 @@ export default async function OffersPage() {
         {activeOffers.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {activeOffers.map(offer => {
-              const filterUrl = offer.category_id
-                ? `/shop?category=${offer.category_id}`
+              const filterUrl = offer.categories?.slug
+                ? `/shop?category=${offer.categories.slug}`
                 : '/shop';
 
               const validityText = offer.valid_until

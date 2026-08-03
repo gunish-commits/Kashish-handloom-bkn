@@ -57,7 +57,9 @@ export interface Offer {
   valid_until: string | null;
   created_at: string;
   categories?: {
+    id: string;
     name: string;
+    slug: string;
   } | null;
 }
 

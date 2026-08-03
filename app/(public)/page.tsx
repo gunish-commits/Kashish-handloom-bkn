@@ -30,7 +30,7 @@ export default async function HomePage() {
       .limit(8),
     supabase
       .from('offers')
-      .select('*')
+      .select('*, categories(id, name, slug)')
       .eq('active', true)
       .or(`valid_until.is.null,valid_until.gte.${todayStr}`),
   ]);
