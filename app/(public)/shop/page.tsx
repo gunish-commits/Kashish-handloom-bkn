@@ -37,6 +37,13 @@ function ShopContent() {
   const lastFetchedKey = useRef('');
   const [shouldRestoreScroll, setShouldRestoreScroll] = useState<number | null>(null);
 
+  const searchInputRef = useRef(searchInput);
+  useEffect(() => {
+    searchInputRef.current = searchInput;
+  }, [searchInput]);
+
+  const lastParamsRef = useRef(searchParams.toString());
+
   // 1. Restore shop list and scroll position from session cache on mount
   useEffect(() => {
     const savedProductsStr = sessionStorage.getItem('shop_state_products');
@@ -146,7 +153,18 @@ function ShopContent() {
   useEffect(() => {
     if (!isRestored) return;
 
-    const currentKey = `${searchParams.toString()}-${page}`;
+    const currentParams = searchParams.toString();
+    const paramsChanged = currentParams !== lastParamsRef.current;
+    
+    // If the filters changed but our local page is not reset to 1 yet,
+    // skip this run because the setPage(1) effect will immediately trigger a rerun with page = 1.
+    if (paramsChanged && page !== 1) {
+      lastParamsRef.current = currentParams;
+      return;
+    }
+    lastParamsRef.current = currentParams;
+
+    const currentKey = `${currentParams}-${page}`;
     if (lastFetchedKey.current === currentKey) {
       setLoading(false);
       return;
@@ -197,30 +215,36 @@ function ShopContent() {
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
-  // Handle live search input changes with 300ms debounce
+  // Handle live search input changes (only fetches preview, does NOT trigger page transitions during typing!)
   const handleSearchChange = (val: string) => {
-    // 1. URL search updates
-    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    searchTimeoutRef.current = setTimeout(() => {
+    const trimmedVal = val.trim();
+    
+    // If the search input is cleared, remove the search filter from the URL immediately
+    if (trimmedVal === '') {
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+      if (liveSearchTimeoutRef.current) clearTimeout(liveSearchTimeoutRef.current);
+      setLivePreviewResults([]);
+      setShowShopSearchDropdown(false);
+      
       const params = new URLSearchParams(searchParams.toString());
-      if (val.trim() !== '') {
-        params.set('search', val.trim());
-      } else {
-        params.delete('search');
-      }
+      params.delete('search');
       params.delete('page');
       router.push(`/shop?${params.toString()}`);
-    }, 300);
+      return;
+    }
 
-    // 2. Fetch live dropdown previews
-    if (val.trim().length >= 2) {
+    // Fetch live dropdown previews
+    if (trimmedVal.length >= 2) {
       if (liveSearchTimeoutRef.current) clearTimeout(liveSearchTimeoutRef.current);
       liveSearchTimeoutRef.current = setTimeout(() => {
-        fetch(`/api/products?search=${encodeURIComponent(val.trim())}&limit=5`)
+        fetch(`/api/products?search=${encodeURIComponent(trimmedVal)}&limit=5`)
           .then(res => (res.ok ? res.json() : { products: [] }))
           .then(data => {
-            setLivePreviewResults(data.products || []);
-            setShowShopSearchDropdown(true);
+            // Only update results if query in input still matches the fetched value
+            if (searchInputRef.current.trim() === trimmedVal) {
+              setLivePreviewResults(data.products || []);
+              setShowShopSearchDropdown(true);
+            }
           })
           .catch(() => setLivePreviewResults([]));
       }, 200);
@@ -233,6 +257,8 @@ function ShopContent() {
   const handleSearchSubmit = () => {
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     if (liveSearchTimeoutRef.current) clearTimeout(liveSearchTimeoutRef.current);
+    // Invalidate pending autocomplete fetches
+    searchInputRef.current = '';
     setShowShopSearchDropdown(false);
     setLivePreviewResults([]);
     
