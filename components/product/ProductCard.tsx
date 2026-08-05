@@ -43,6 +43,14 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   const isOutOfStock = stock === 0;
 
+  const handleCardClick = () => {
+    try {
+      sessionStorage.setItem('shop_state_scroll', window.scrollY.toString());
+    } catch (err) {
+      console.error('Failed to save scroll position to sessionStorage:', err);
+    }
+  };
+
   const getVariants = (desc: string | null) => {
     if (!desc) return [];
     const match = desc.match(/<!--COLOR_VARIANTS:(.*?)-->/);
@@ -104,7 +112,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <div className="group bg-card-white rounded-[4px] border border-gray-100 shadow-[0_2px_8px_rgba(15,10,5,0.08)] hover:shadow-[0_8px_24px_rgba(15,10,5,0.15)] hover:-translate-y-[3px] transition-all duration-250 flex flex-col h-full overflow-hidden">
       {/* Link surrounding Image area */}
-      <Link href={`/product/${slug}`} className="relative aspect-[4/5] w-full block overflow-hidden bg-gray-50 shrink-0">
+      <Link href={`/product/${slug}`} onClick={handleCardClick} className="relative aspect-[4/5] w-full block overflow-hidden bg-gray-50 shrink-0">
         {/* Main Product Image */}
         <Image
           src={mainPhoto}
@@ -163,7 +171,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         </p>
 
         {/* Product Title */}
-        <Link href={`/product/${slug}`} className="block mb-2">
+        <Link href={`/product/${slug}`} onClick={handleCardClick} className="block mb-2">
           <h4 className="font-sans font-medium text-sm md:text-[15px] text-[#1A110A] hover:text-deep-maroon transition-colors line-clamp-2 leading-snug">
             {name}
           </h4>

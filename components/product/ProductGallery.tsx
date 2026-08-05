@@ -21,6 +21,12 @@ export default function ProductGallery({ photos, productName, description }: Pro
 
   useEffect(() => {
     setMounted(true);
+    // Force scroll viewport back to top on product page load
+    try {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    } catch (e) {
+      console.error('Failed to scroll to top on mount:', e);
+    }
   }, []);
 
   // Filter images array based on selected color variant (defaults to first variant if none selected)

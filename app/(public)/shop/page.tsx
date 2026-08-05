@@ -123,18 +123,7 @@ function ShopContent() {
     }
   }, [products, page, totalCount, hasMore, searchParams]);
 
-  // 3. Monitor scroll position to save to cache
-  useEffect(() => {
-    const handleScroll = () => {
-      try {
-        sessionStorage.setItem('shop_state_scroll', window.scrollY.toString());
-      } catch (err) {
-        console.error('Failed to save scroll position to sessionStorage:', err);
-      }
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+
 
   // Sync search input from URL on mount/change
   useEffect(() => {
