@@ -74,18 +74,36 @@ function ShopContent() {
     setIsRestored(true);
   }, []);
 
-  // 1b. Perform scroll restoration ONLY after products are rendered in the DOM to avoid clamping
+  // 1b. Perform scroll restoration with a self-correcting loop to avoid browser clamping
   useEffect(() => {
     if (products.length > 0 && shouldRestoreScroll !== null) {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          window.scrollTo({
-            top: shouldRestoreScroll,
-            behavior: 'instant'
-          });
-          setShouldRestoreScroll(null);
+      const targetScroll = shouldRestoreScroll;
+      let attempts = 0;
+
+      const scrollInterval = setInterval(() => {
+        window.scrollTo({
+          top: targetScroll,
+          behavior: 'instant'
         });
-      });
+
+        attempts++;
+
+        const currentScroll = window.scrollY;
+        const maxScrollPossible = document.documentElement.scrollHeight - window.innerHeight;
+
+        // Stop if we successfully reached the target, or if we hit the maximum possible height 
+        // after giving the DOM 5 frames to load/expand, or if we hit a 1-second timeout (20 attempts).
+        if (
+          Math.abs(currentScroll - targetScroll) < 5 ||
+          (currentScroll >= maxScrollPossible && maxScrollPossible > 0 && attempts > 5) ||
+          attempts > 20
+        ) {
+          clearInterval(scrollInterval);
+          setShouldRestoreScroll(null);
+        }
+      }, 50);
+
+      return () => clearInterval(scrollInterval);
     }
   }, [products, shouldRestoreScroll]);
 
