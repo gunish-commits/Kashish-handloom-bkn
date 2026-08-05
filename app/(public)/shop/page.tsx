@@ -212,10 +212,24 @@ function ShopContent() {
       });
   }, [searchParams, page, isRestored]);
 
-  // Reset page whenever filters change
+  // Reset page whenever filters change (guard against initial mount restoration)
   useEffect(() => {
+    if (!isRestored) return;
+
+    try {
+      const savedProductsStr = sessionStorage.getItem('shop_state_products');
+      if (savedProductsStr) {
+        const saved = JSON.parse(savedProductsStr);
+        const CACHE_VERSION = 'v3';
+        if (saved.version === CACHE_VERSION && saved.searchParams === window.location.search) {
+          // This is the initial restoration mount, do NOT reset page to 1!
+          return;
+        }
+      }
+    } catch (e) {}
+
     setPage(1);
-  }, [searchParams]);
+  }, [searchParams, isRestored]);
 
   // Click outside to dismiss live search dropdown
   useEffect(() => {

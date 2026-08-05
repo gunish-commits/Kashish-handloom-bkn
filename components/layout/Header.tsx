@@ -29,6 +29,10 @@ export default function Header() {
 
   useEffect(() => {
     setMounted(true);
+    // Disable native browser scroll restoration to prevent history scroll-jacking
+    if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
   }, []);
 
   // Monitor login success flags to trigger popup toast
