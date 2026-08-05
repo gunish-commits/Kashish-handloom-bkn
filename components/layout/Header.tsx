@@ -35,6 +35,17 @@ export default function Header() {
     }
   }, []);
 
+  // Force scroll window to top on pathname changes (navigating to another page)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      } catch (e) {
+        console.error('Failed scroll on path change:', e);
+      }
+    }
+  }, [pathname]);
+
   // Monitor login success flags to trigger popup toast
   useEffect(() => {
     if (mounted) {
