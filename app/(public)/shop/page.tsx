@@ -46,13 +46,14 @@ function ShopContent() {
 
   // 1. Restore shop list and scroll position from session cache on mount
   useEffect(() => {
+    const CACHE_VERSION = 'v3';
     const savedProductsStr = sessionStorage.getItem('shop_state_products');
     const savedScrollStr = sessionStorage.getItem('shop_state_scroll');
 
     if (savedProductsStr) {
       try {
         const saved = JSON.parse(savedProductsStr);
-        if (saved.searchParams === window.location.search) {
+        if (saved.version === CACHE_VERSION && saved.searchParams === window.location.search) {
           setProducts(saved.products || []);
           setPage(saved.page || 1);
           setTotalCount(saved.totalCount || 0);
@@ -66,6 +67,9 @@ function ShopContent() {
           setLoading(false);
           setIsRestored(true);
           return;
+        } else if (saved.version !== CACHE_VERSION) {
+          sessionStorage.removeItem('shop_state_products');
+          sessionStorage.removeItem('shop_state_scroll');
         }
       } catch (e) {
         console.error('Failed to restore shop state:', e);
@@ -125,6 +129,7 @@ function ShopContent() {
           categories: p.categories ? { name: p.categories.name, slug: p.categories.slug } : null
         }));
 
+        const CACHE_VERSION = 'v3';
         sessionStorage.setItem(
           'shop_state_products',
           JSON.stringify({
@@ -133,6 +138,7 @@ function ShopContent() {
             totalCount,
             hasMore,
             searchParams: window.location.search,
+            version: CACHE_VERSION
           })
         );
       } catch (err) {
