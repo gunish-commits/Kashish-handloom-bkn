@@ -39,7 +39,20 @@ export default function Header() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
+        // Run immediately
         window.scrollTo({ top: 0, behavior: 'instant' });
+
+        // If we are opening a product details page, run a short loop to keep the viewport locked at the top
+        // during the initial rendering, hydration shifts, and image-loading frames.
+        if (pathname && pathname.startsWith('/product/')) {
+          let count = 0;
+          const interval = setInterval(() => {
+            window.scrollTo({ top: 0, behavior: 'instant' });
+            count++;
+            if (count > 6) clearInterval(interval); // Run for 300ms (6 attempts * 50ms)
+          }, 50);
+          return () => clearInterval(interval);
+        }
       } catch (e) {
         console.error('Failed scroll on path change:', e);
       }
